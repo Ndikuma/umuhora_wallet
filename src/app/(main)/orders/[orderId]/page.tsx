@@ -422,8 +422,10 @@ export default function OrderDetailsPage() {
                                     Commande d'{order.direction === 'buy' ? 'Achat' : 'Vente'} #{order.id}
                                 </CardTitle>
                                 <CardDescription>
-                                    le {new Date(order.created_at).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric'})}
-                                    <Badge variant="outline" className="ml-2 capitalize">{order.payment_method.replace('_', '-')}</Badge>
+                                    <div className="flex items-center gap-2">
+                                        <span>le {new Date(order.created_at).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric'})}</span>
+                                        <Badge variant="outline" className="capitalize">{order.payment_method.replace('_', '-')}</Badge>
+                                    </div>
                                 </CardDescription>
                            </div>
                         </div>
@@ -540,7 +542,7 @@ export default function OrderDetailsPage() {
 
             {order.direction === 'buy' && order.payment_method === 'on_chain' && order.status === 'pending' && <PaymentProofForm order={order} onSuccessfulSubmit={handleSuccessfulSubmit} />}
 
-            {order.direction === 'buy' && isLightning && order.status === 'pending' && <LightningBuyOrderDetails order={order} />}
+            {order.direction === 'buy' && isLightning && order.status === 'pending' && <PaymentProofForm order={order} onSuccessfulSubmit={handleSuccessfulSubmit} />}
 
             {order.direction === 'sell' && isLightning && order.status === 'pending' && <LightningSellOrderDetails order={order} onOrderUpdate={setOrder} />}
 
@@ -557,5 +559,4 @@ export default function OrderDetailsPage() {
             )}
         </div>
     );
-
-    
+}
