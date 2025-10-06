@@ -6,9 +6,27 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import api from "@/lib/api";
-import type { Balance, SellProvider, FeeEstimation, SellOrderPayload, PayoutData, Order, LightningBalance } from "@/lib/types";
+import type {
+  Balance,
+  SellProvider,
+  FeeEstimation,
+  SellOrderPayload,
+  PayoutData,
+  LightningBalance,
+} from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Bitcoin, Landmark, Loader2, Banknote, Info, User as UserIcon, Phone, Mail, AlertCircle, Check, Zap, CheckCircle2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Bitcoin,
+  Landmark,
+  Loader2,
+  Info,
+  User as UserIcon,
+  Phone,
+  Mail,
+  AlertCircle,
+  Zap,
+} from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,127 +51,119 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { getFiat } from "@/lib/utils";
 import Link from "next/link";
-import { Textarea } from "@/components/ui/textarea";
 
 const networkSchema = z.object({
-    network: z.enum(["on_chain", "lightning"]),
+  network: z.enum(["on_chain", "lightning"], {
+    required_error: "Veuillez choisir un réseau.",
+  }),
 });
 
-const onChainAmountSchema = (balance: number) => z.object({
-  amount: z.coerce
-    .number({ invalid_type_error: "Veuillez entrer un nombre valide." })
-    .positive({ message: "Le montant doit être supérieur à zéro." })
-    .max(balance, `Solde insuffisant. Disponible : ${balance.toFixed(8)} BTC`),
-});
+const onChainAmountSchema = (balance: number) =>
+  z.object({
+    amount: z.coerce
+      .number({ invalid_type_error: "Veuillez entrer un nombre valide." })
+      .positive({ message: "Le montant doit être supérieur à zéro." })
+      .max(balance, `Solde insuffisant. Disponible : ${balance.toFixed(8)} BTC`),
+  });
 
-const lightningAmountSchema = (balance: number) => z.object({
-  amount: z.coerce
-    .number({ invalid_type_error: "Veuillez entrer un nombre valide." })
-    .int("Veuillez entrer un nombre entier de sats.")
-    .positive({ message: "Le montant doit être supérieur à zéro." })
-    .max(balance, `Solde insuffisant. Disponible : ${balance} sats`),
-});
+const lightningAmountSchema = (balance: number) =>
+  z.object({
+    amount: z.coerce
+      .number({ invalid_type_error: "Veuillez entrer un nombre valide." })
+      .int("Veuillez entrer un nombre entier de sats.")
+      .positive({ message: "Le montant doit être supérieur à zéro." })
+      .max(balance, `Solde insuffisant. Disponible : ${balance} sats`),
+  });
 
 const providerSchema = z.object({
-    providerId: z.string({ required_error: "Veuillez sélectionner un fournisseur." }),
+  providerId: z.string({ required_error: "Veuillez sélectionner un fournisseur." }),
 });
 
 const paymentDetailsSchema = z.object({
-    full_name: z.string().min(1, "Le nom complet est requis."),
-    phone_number: z.string().min(1, "Le numéro de téléphone est requis."),
-    account_number: z.string().min(1, "Le numéro de compte est requis."),
-    email: z.string().email("Veuillez entrer une adresse e-mail valide.").optional(),
+  full_name: z.string().min(1, "Le nom complet est requis."),
+  phone_number: z.string().min(1, "Le numéro de téléphone est requis."),
+  account_number: z.string().min(1, "Le numéro de compte est requis."),
+  email: z.string().email("Veuillez entrer une adresse e-mail valide.").optional(),
 });
 
 type FormData = {
-    network?: "on-chain" | "lightning";
-    amount?: number;
-    providerId?: string;
-    paymentDetails?: PayoutData;
+  network?: "on_chain" | "lightning";
+  amount?: number;
+  providerId?: string;
+  paymentDetails?: PayoutData;
 };
 
-
 export default function SellPage() {
-    const { toast } = useToast();
-    const router = useRouter();
-    const [balance, setBalance] = useState<Balance | null>(null);
-    const [lightningBalance, setLightningBalance] = useState<LightningBalance | null>(null);
-    const [isLoadingData, setIsLoadingData] = useState(true);
-    const [dataError, setDataError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const router = useRouter();
 
-    const [providers, setProviders] = useState<SellProvider[]>([]);
-    
-    const [currentStep, setCurrentStep] = useState(0);
-    const [formData, setFormData] = useState<FormData>({});
-    
-    const [feeEstimation, setFeeEstimation] = useState<FeeEstimation | null>(null);
-    const [isEstimatingFee, setIsEstimatingFee] = useState(false);
-    const [feeError, setFeeError] = useState<string | null>(null);
+  const [balance, setBalance] = useState<Balance | null>(null);
+  const [lightningBalance, setLightningBalance] = useState<LightningBalance | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
+  const [providers, setProviders] = useState<SellProvider[]>([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [formData, setFormData] = useState<FormData>({});
+  const [feeEstimation, setFeeEstimation] = useState<FeeEstimation | null>(null);
+  const [isEstimatingFee, setIsEstimatingFee] = useState(false);
+  const [feeError, setFeeError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    
-    const currentOnChainBalance = balance ? parseFloat(balance.balance) : 0;
-    const currentLightningBalance = lightningBalance ? lightningBalance.balance : 0;
+  const currentOnChainBalance = balance ? parseFloat(balance.balance) : 0;
+  const currentLightningBalance = lightningBalance ? lightningBalance.balance : 0;
 
-    const networkForm = useForm<z.infer<typeof networkSchema>>({
-        resolver: zodResolver(networkSchema),
-    });
+  const networkForm = useForm<z.infer<typeof networkSchema>>({
+    resolver: zodResolver(networkSchema),
+  });
 
-    const onChainAmountForm = useForm<{ amount: number }>({
-        resolver: zodResolver(onChainAmountSchema(currentOnChainBalance)),
-        mode: "onChange",
-    });
+  const onChainAmountForm = useForm<{ amount: number }>({
+    resolver: zodResolver(onChainAmountSchema(currentOnChainBalance)),
+    mode: "onChange",
+  });
 
-    const lightningAmountForm = useForm<{ amount: number }>({
-        resolver: zodResolver(lightningAmountSchema(currentLightningBalance)),
-        mode: "onChange",
-    });
+  const lightningAmountForm = useForm<{ amount: number }>({
+    resolver: zodResolver(lightningAmountSchema(currentLightningBalance)),
+    mode: "onChange",
+  });
 
-    const providerForm = useForm<{ providerId: string }>({
-        resolver: zodResolver(providerSchema),
-        mode: "onChange",
-    });
+  const providerForm = useForm<{ providerId: string }>({
+    resolver: zodResolver(providerSchema),
+    mode: "onChange",
+  });
 
-    const paymentDetailsForm = useForm<z.infer<typeof paymentDetailsSchema>>({
-        resolver: zodResolver(paymentDetailsSchema),
-        mode: "onChange",
-    });
-    
-    const fetchInitialData = useCallback(async (network?: 'on_chain' | 'lightning') => {
-        setIsLoadingData(true);
-        setDataError(null);
-        try {
-            const promises: Promise<any>[] = [api.getSellProviders(network)];
-            if (network === 'on_chain') {
-                promises.push(api.getWalletBalance());
-            } else if (network === 'lightning') {
-                promises.push(api.getLightningBalance());
-            } else {
-                 promises.push(api.getWalletBalance(), api.getLightningBalance());
-            }
+  const paymentDetailsForm = useForm<z.infer<typeof paymentDetailsSchema>>({
+    resolver: zodResolver(paymentDetailsSchema),
+    mode: "onChange",
+  });
 
-            const [providersRes, balanceRes, lightningBalanceRes] = await Promise.all(promises);
+  const fetchInitialData = useCallback(async (network?: "on_chain" | "lightning") => {
+    setIsLoadingData(true);
+    setDataError(null);
+    try {
+      const promises: Promise<any>[] = [api.getSellProviders(network)];
+      if (network === "on_chain") promises.push(api.getWalletBalance());
+      else if (network === "lightning") promises.push(api.getLightningBalance());
+      else promises.push(api.getWalletBalance(), api.getLightningBalance());
 
-            setProviders(providersRes.data);
+      const [providersRes, balanceRes, lightningBalanceRes] = await Promise.all(promises);
 
-            if(balanceRes) setBalance(balanceRes.data);
-            if(lightningBalanceRes) setLightningBalance(lightningBalanceRes.data);
-            
-        } catch (err: any) {
-            const errorMsg = err.message || "Échec du chargement des données initiales.";
-            setDataError(errorMsg);
-            toast({ variant: "destructive", title: "Erreur", description: errorMsg });
-        } finally {
-            setIsLoadingData(false);
-        }
-    }, [toast]);
-    
-    useEffect(() => {
-        fetchInitialData();
-    }, [fetchInitialData]);
-    
+      setProviders(providersRes.data);
+      if (balanceRes) setBalance(balanceRes.data);
+      if (lightningBalanceRes) setLightningBalance(lightningBalanceRes.data);
+    } catch (err: any) {
+      const errorMsg = err.message || "Échec du chargement des données initiales.";
+      setDataError(errorMsg);
+      toast({ variant: "destructive", title: "Erreur", description: errorMsg });
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
+
     const estimateFeeCallback = async (amount: number) => {
         if (formData.network !== 'on_chain') return;
         setIsEstimatingFee(true);
@@ -605,47 +615,48 @@ export default function SellPage() {
         );
     };
 
-    const steps = [
-        { title: "Réseau" },
-        { title: "Montant" },
-        { title: "Fournisseur" },
-        { title: "Paiement" },
-        { title: "Confirmer" }
-    ];
+  const steps = [
+    { title: "Réseau" },
+    { title: "Montant" },
+    { title: "Fournisseur" },
+    { title: "Paiement" },
+    { title: "Confirmer" },
+  ];
 
-    return (
-        <div className="mx-auto max-w-2xl space-y-6">
-            <div className="space-y-2">
-                {currentStep > 0 && (
-                    <Button variant="ghost" onClick={handleBack} className="-ml-4" disabled={isSubmitting}>
-                        <ArrowLeft className="mr-2 size-4" /> Retour
-                    </Button>
-                )}
-                <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Vendre des Bitcoins</h1>
-                <p className="text-muted-foreground">Suivez les étapes pour vendre vos Bitcoins en toute sécurité.</p>
-            </div>
-            
-            {currentStep > 0 && (
-                 <div className="flex w-full items-center justify-between rounded-lg border bg-card p-2 text-xs sm:text-sm">
-                    {steps.map((step, index) => (
-                        <React.Fragment key={index}>
-                            <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:gap-2">
-                                <div className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${currentStep > index ? 'bg-primary text-primary-foreground' : currentStep === index ? 'border-2 border-primary text-primary' : 'bg-muted text-muted-foreground'}`}>
-                                    {currentStep > index ? <Check className="size-4" /> : index + 1}
-                                </div>
-                                <span className={`hidden sm:block ${currentStep >= index ? 'font-semibold' : 'text-muted-foreground'}`}>{step.title}</span>
-                            </div>
-                            {index < steps.length - 1 && <div className="flex-1 h-px bg-border mx-2" />}
-                        </React.Fragment>
-                    ))}
-                </div>
-            )}
-            
-            {currentStep === 0 && renderNetworkStep()}
-            {currentStep === 1 && renderAmountStep()}
-            {currentStep === 2 && renderProviderStep()}
-            {currentStep === 3 && renderPaymentDetailsStep()}
-            {currentStep === 4 && renderConfirmationStep()}
-        </div>
-    );
+  return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div className="space-y-2">
+        {currentStep > 0 && (
+          <Button
+            variant="ghost"
+            onClick={() => setCurrentStep((prev) => prev - 1)}
+            className="-ml-4"
+            disabled={isSubmitting}
+          >
+            <ArrowLeft className="mr-2 size-4" /> Retour
+          </Button>
+        )}
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          Vendre des Bitcoins
+        </h1>
+        <p className="text-muted-foreground">
+          Suivez les étapes ci-dessous pour vendre vos fonds en toute sécurité.
+        </p>
+      </div>
+
+      <div>
+        {currentStep === 0 && renderNetworkStep()}
+        {currentStep === 1 && renderAmountStep()}
+        {currentStep === 2 && renderProviderStep()}
+        {currentStep === 3 && renderPaymentDetailsStep()}
+        {currentStep === 4 && renderConfirmationStep()}
+      </div>
+
+      <div className="text-center text-sm text-muted-foreground pt-6">
+        <p>
+          Besoin d’aide ? <Link href="/support" className="text-primary underline">Contactez le support</Link>
+        </p>
+      </div>
+    </div>
+  );
 }
