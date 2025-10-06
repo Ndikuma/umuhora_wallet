@@ -17,7 +17,7 @@ import { RefreshCw, Loader2, AlertCircle } from "lucide-react";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils.tsx";
+import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
 export default function ReceivePage() {

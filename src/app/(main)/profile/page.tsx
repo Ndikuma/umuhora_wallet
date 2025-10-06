@@ -17,7 +17,7 @@ import type { User, Wallet } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowRight, User as UserIcon, BarChart2, Clock, Hash, TrendingUp, TrendingDown, Copy, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { shortenText } from "@/lib/utils.tsx";
+import { shortenText } from "@/lib/utils";
 import { CopyButton } from "@/components/copy-button";
 
 interface StatCardProps {

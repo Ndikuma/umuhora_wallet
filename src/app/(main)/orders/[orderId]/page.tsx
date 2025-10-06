@@ -50,7 +50,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CopyButton } from "@/components/copy-button";
-import { shortenText, getStatusIcon, getStatusVariant } from "@/lib/utils.tsx";
+import { shortenText, getStatusIcon, getStatusVariant } from "@/lib/utils";
 
 const paymentProofSchema = z.object({
     payment_proof_ref: z.string().min(4, "Veuillez entrer une référence valide."),

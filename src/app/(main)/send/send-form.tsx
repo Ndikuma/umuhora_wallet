@@ -31,7 +31,7 @@ import api from "@/lib/api";
 import type { FeeEstimation } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
-import { getFiat } from "@/lib/utils.tsx";
+import { getFiat } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { useWallet } from "@/context/wallet-context";
 import { z } from "zod";

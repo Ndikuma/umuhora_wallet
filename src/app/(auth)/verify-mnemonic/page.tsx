@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
-import { cn } from "@/lib/utils.tsx";
+import { cn } from "@/lib/utils";
 import { Undo2, Loader2 } from "lucide-react";
 
 // Function to shuffle an array

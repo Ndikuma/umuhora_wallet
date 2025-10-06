@@ -33,7 +33,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { getFiat } from "@/lib/utils.tsx";
+import { getFiat } from "@/lib/utils";
 import Link from "next/link";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -308,7 +308,7 @@ export default function SellPage() {
                                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <FormItem>
                                                 <FormControl>
-                                                    <RadioGroupItem value="on-chain" id="on-chain" className="peer sr-only" />
+                                                    <RadioGroupItem value="on_chain" id="on-chain" className="peer sr-only" />
                                                 </FormControl>
                                                 <Label htmlFor="on-chain" className="cursor-pointer hover:border-primary transition-colors p-6 flex flex-col items-center justify-center text-center rounded-lg border-2 border-muted bg-popover peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                                                     <Bitcoin className="size-10 text-primary mb-3"/>

@@ -27,7 +27,7 @@ import {
   Zap,
   Bitcoin,
 } from "lucide-react";
-import { cn, shortenText } from "@/lib/utils.tsx";
+import { cn, shortenText } from "@/lib/utils";
 import api from "@/lib/api";
 import type { Transaction, LightningTransaction } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";

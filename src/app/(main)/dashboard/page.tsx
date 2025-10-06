@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { cn, shortenText } from "@/lib/utils.tsx";
+import { cn, shortenText } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
 import type { Transaction } from "@/lib/types";

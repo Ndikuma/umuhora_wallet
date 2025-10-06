@@ -17,7 +17,7 @@ import { AlertCircle, ShoppingCart, Loader2, Zap, Bitcoin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getStatusIcon, getStatusVariant } from "@/lib/utils.tsx";
+import { getStatusIcon, getStatusVariant } from "@/lib/utils";
 
 
 const formatSats = (sats: number | null | undefined) => {
