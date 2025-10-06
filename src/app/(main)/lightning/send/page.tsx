@@ -43,48 +43,68 @@ const StepInput = ({ onNext, setRequest, request }: { onNext: () => void, setReq
 
     useEffect(() => {
         if (!isScanning) return;
-        let stream: MediaStream | null = null;
+
         let animationFrameId: number;
+        
+        const getCameraPermission = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                setHasCameraPermission(true);
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.play();
+                    animationFrameId = requestAnimationFrame(scanQRCode);
+                }
+            } catch (err) {
+                console.error("Camera access denied:", err);
+                setHasCameraPermission(false);
+                toast({
+                    variant: 'destructive',
+                    title: 'Camera Access Denied',
+                    description: 'Please enable camera permissions to scan a QR code.',
+                });
+            }
+        };
 
         const scanQRCode = () => {
-            if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA && canvasRef.current) {
-                const video = videoRef.current;
-                const canvas = canvasRef.current;
-                const ctx = canvas.getContext("2d");
-                if (ctx) {
-                    canvas.height = video.videoHeight;
-                    canvas.width = video.videoWidth;
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-                    if (code) {
-                        const data = code.data.toLowerCase().replace("lightning:", "");
-                        setRequest(data);
-                        toast({ title: "Code scanné avec succès" });
-                        onNext();
-                        setIsScanning(false);
-                        return;
-                    }
+            if (!videoRef.current || !canvasRef.current || videoRef.current.readyState !== videoRef.current.HAVE_ENOUGH_DATA) {
+                animationFrameId = requestAnimationFrame(scanQRCode);
+                return;
+            }
+
+            const video = videoRef.current;
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext("2d");
+
+            if (ctx) {
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                if (code) {
+                    const data = code.data.toLowerCase().replace("lightning:", "");
+                    setRequest(data);
+                    toast({ title: "Code scanné avec succès" });
+                    setIsScanning(false); // Close dialog
+                    onNext(); // Move to next step
+                    return; // Stop scanning
                 }
             }
             animationFrameId = requestAnimationFrame(scanQRCode);
         };
 
-        const startScan = async () => {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                setHasCameraPermission(true);
-                if (videoRef.current) videoRef.current.srcObject = stream;
-            } catch (err) {
-                setHasCameraPermission(false);
-            }
-        };
+        getCameraPermission();
 
-        startScan();
-        animationFrameId = requestAnimationFrame(scanQRCode);
         return () => {
-            stream?.getTracks().forEach(track => track.stop());
-            cancelAnimationFrame(animationFrameId);
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            if (videoRef.current && videoRef.current.srcObject) {
+                const stream = videoRef.current.srcObject as MediaStream;
+                stream.getTracks().forEach(track => track.stop());
+            }
         };
     }, [isScanning, onNext, setRequest, toast]);
 
@@ -105,7 +125,7 @@ const StepInput = ({ onNext, setRequest, request }: { onNext: () => void, setReq
                         <div className="relative w-full aspect-square bg-muted rounded-md overflow-hidden">
                             <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                             <canvas ref={canvasRef} className="hidden" />
-                            <div className="absolute inset-0 border-4 border-primary rounded-lg" />
+                            {hasCameraPermission !== false && <div className="absolute inset-0 border-4 border-primary rounded-lg" />}
                         </div>
                         {hasCameraPermission === false && <Alert variant="destructive"><AlertTitle>Accès caméra requis</AlertTitle><AlertDescription>Veuillez autoriser l'accès à la caméra.</AlertDescription></Alert>}
                     </DialogContent>
@@ -178,8 +198,6 @@ const StepConfirm = ({ request, onBack, onSuccess }: { request: string, onBack: 
             await api.payLightningInvoice({
                 request,
                 amount_sats: totalAmountSats,
-                type: decoded.type,
-                internal: decoded.internal,
              });
             toast({ title: "Paiement réussi !", description: "Votre paiement a été envoyé." });
             onSuccess();
@@ -310,5 +328,3 @@ export default function SendPaymentPage() {
         </div>
     );
 }
-
-    
