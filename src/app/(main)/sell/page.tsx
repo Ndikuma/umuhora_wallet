@@ -167,7 +167,7 @@ export default function SellPage() {
         } finally {
             setIsEstimatingFee(false);
         }
-    }, [formData.network]);
+    }, [formData]);
 
     useEffect(() => {
         (onChainAmountForm.control as any)._resolver = zodResolver(onChainAmountSchema(currentOnChainBalance));
