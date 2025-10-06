@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -12,46 +11,49 @@ import {
   Zap,
   Bitcoin,
   FileText,
-  Send
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function MobileNav() {
   const pathname = usePathname();
 
-  const isLightning = pathname.startsWith('/lightning');
-  
+  // Detect if we're inside the Lightning section
+  const isLightning = pathname.startsWith("/lightning");
+
+  // Define FAB (center floating action button)
   const fabAction = {
     href: isLightning ? "/lightning/send" : "/send",
     icon: isLightning ? Zap : Bitcoin,
     label: "Envoyer",
   };
 
+  // Define receive action (regular menu item)
   const receiveAction = {
-      href: isLightning ? "/lightning/invoice" : "/receive",
-      icon: isLightning ? FileText : Download,
-      label: "Recevoir",
+    href: isLightning ? "/lightning/invoice" : "/receive",
+    icon: isLightning ? FileText : Download,
+    label: "Recevoir",
   };
 
+  // Unified structure: all use href (no `path`)
   const menuItems = [
-    { path: "/dashboard", icon: Bitcoin, label: "On chain" },
+    { href: "/dashboard", icon: Bitcoin, label: "On chain" },
     receiveAction,
-    { path: "/orders", icon: Receipt, label: "Commandes" },
-    { path: "/lightning", icon: Zap, label: "Lightning" },
+    { href: "/orders", icon: Receipt, label: "Commandes" },
+    { href: "/lightning", icon: Zap, label: "Lightning" },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-20 h-20 border-t bg-background/95 backdrop-blur-sm md:hidden">
       <div className="relative grid h-full grid-cols-5 items-center">
+        {/* Left two icons */}
         {menuItems.slice(0, 2).map((item) => {
-          const linkPath = item.path || item.href || "/";
           const isActive =
-            (item.path && pathname.startsWith(item.path) && item.path !== "/") ||
-            pathname === item.path;
+            pathname === item.href || pathname.startsWith(item.href + "/");
+
           return (
             <Link
               key={item.label}
-              href={linkPath}
+              href={item.href}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
                 isActive
@@ -65,6 +67,7 @@ export function MobileNav() {
           );
         })}
 
+        {/* Floating Action Button in the center */}
         <div className="relative flex justify-center items-center col-start-3">
           <Link
             href={fabAction.href}
@@ -75,14 +78,15 @@ export function MobileNav() {
           </Link>
         </div>
 
+        {/* Right two icons */}
         {menuItems.slice(2).map((item) => {
-          const linkPath = item.path || item.href || "/";
           const isActive =
-            (item.path && pathname.startsWith(item.path)) || pathname === item.path;
+            pathname === item.href || pathname.startsWith(item.href + "/");
+
           return (
             <Link
               key={item.label}
-              href={linkPath}
+              href={item.href}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
                 isActive
