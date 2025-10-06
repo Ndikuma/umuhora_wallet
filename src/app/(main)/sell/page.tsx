@@ -154,7 +154,7 @@ export default function SellPage() {
         fetchInitialData();
     }, [fetchInitialData]);
     
-    const estimateFeeCallback = useCallback(async (amount: number) => {
+    const estimateFeeCallback = async (amount: number) => {
         if (formData.network !== 'on_chain') return;
         setIsEstimatingFee(true);
         setFeeError(null);
@@ -167,7 +167,7 @@ export default function SellPage() {
         } finally {
             setIsEstimatingFee(false);
         }
-    }, [formData]);
+    };
 
     useEffect(() => {
         (onChainAmountForm.control as any)._resolver = zodResolver(onChainAmountSchema(currentOnChainBalance));
@@ -217,7 +217,7 @@ export default function SellPage() {
                 const newFormData = { ...formData, paymentDetails: paymentDetailsForm.getValues() };
                 setFormData(newFormData);
                 if (newFormData.network === 'on_chain' && newFormData.amount) {
-                    estimateFeeCallback(newFormData.amount);
+                    await estimateFeeCallback(newFormData.amount);
                 }
                 setCurrentStep(4);
             }
