@@ -47,23 +47,30 @@ export function LoginForm() {
     setNeedsVerification(null);
     try {
       const response = await api.login(values);
-      const token = response.data.token;
-
+      const { token, tfa_required, wallet_created } = response.data;
+      
       localStorage.setItem('authToken', token);
       document.cookie = `authToken=${token}; path=/; max-age=604800; samesite=lax`;
 
-      toast({
-        title: "Connexion réussie",
-        description: "Bienvenue !",
-      });
-
-      const { wallet_created } = response.data;
-      if (wallet_created) {
-        router.push("/dashboard");
+      if (tfa_required) {
+        toast({
+          title: "Vérification Requise",
+          description: "Veuillez entrer votre code OTP pour continuer.",
+        });
+        router.push("/verify-otp");
       } else {
-        router.push("/lightning");
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue !",
+        });
+
+        if (wallet_created) {
+          router.push("/dashboard");
+        } else {
+          router.push("/create-or-restore");
+        }
+        router.refresh();
       }
-      router.refresh(); 
 
     } catch (error: any) {
       if (error.message?.includes("Email not verified")) {

@@ -7,6 +7,7 @@ export interface User {
   last_name: string;
   full_name?: string;
   wallet_created?: boolean;
+  is_2fa_enabled?: boolean;
 }
 
 export interface AuthResponse {
@@ -15,6 +16,7 @@ export interface AuthResponse {
   username: string;
   email: string;
   wallet_created: boolean;
+  tfa_required?: boolean;
 }
 
 export interface WalletStats {
@@ -304,4 +306,12 @@ export interface SupportRequestOutput {
   category: string;
   summary: string;
   status: string;
+}
+
+
+// --- 2FA Types ---
+
+export interface TwoFactorSecret {
+  secret: string;
+  qr_code: string;
 }
