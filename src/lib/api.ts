@@ -1,7 +1,6 @@
 
-import type { ApiResponse, AuthResponse, PaginatedResponse, Transaction, User, Wallet, Balance, FeeEstimation, BuyProvider, BuyFeeCalculation, Order, SellProvider, BuyOrderPayload, SellOrderPayload, OrderUpdatePayload, LightningBalance, CreateInvoicePayload, LightningInvoice, PayLightningRequestPayload, LightningPayment, LightningTransaction, DecodeLightningRequestPayload, DecodedLightningRequest, LightningPaymentResponse, PasswordChangePayload, SupportRequestOutput, ChatWithSupportInput, ChatWithSupportOutput } from '@/lib/types';
+import type { ApiResponse, AuthResponse, PaginatedResponse, Transaction, User, Wallet, Balance, FeeEstimation, BuyProvider, BuyFeeCalculation, Order, SellProvider, BuyOrderPayload, SellOrderPayload, OrderUpdatePayload, LightningBalance, CreateInvoicePayload, LightningInvoice, PayLightningRequestPayload, LightningPayment, LightningTransaction, DecodeLightningRequestPayload, DecodedLightningRequest, LightningPaymentResponse, PasswordChangePayload, SupportRequestOutput } from '@/lib/types';
 import { sendSupportRequest } from '@/ai/flows/support-flow';
-import { chatWithSupport } from '@/ai/flows/support-chat-flow';
 import axios, { type AxiosError, type AxiosResponse, type AxiosInstance } from 'axios';
 
 const BACKEND_URL = 'https://mph-illinois-surveys-threaded.trycloudflare.com/';
@@ -173,16 +172,6 @@ const sendSupportRequestApi = async (subject: string, message: string): Promise<
     }
 };
 
-const sendChatMessage = async (input: ChatWithSupportInput): Promise<ChatWithSupportOutput> => {
-    try {
-        const response = await chatWithSupport(input);
-        return response;
-    } catch (error) {
-        console.error("Error in chatWithSupport flow:", error);
-        throw new Error("Failed to get chat response from AI flow.");
-    }
-}
-
 
 const api = {
     login,
@@ -227,7 +216,6 @@ const api = {
     decodeLightningRequest,
     // Support
     sendSupportRequest: sendSupportRequestApi,
-    sendChatMessage,
 };
 
 export default api;

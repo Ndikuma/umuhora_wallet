@@ -305,17 +305,3 @@ export interface SupportRequestOutput {
   summary: string;
   status: string;
 }
-
-export interface ChatMessage {
-  role: 'user' | 'model';
-  content: string;
-}
-
-export interface ChatWithSupportInput {
-  history: ChatMessage[];
-  message: string;
-}
-
-export interface ChatWithSupportOutput {
-  response: string;
-}

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,13 +30,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2, Send, Bot, User, MessageSquare } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 import api from "@/lib/api";
 import { useUser } from "@/hooks/use-user";
-import type { ChatMessage } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const supportFormSchema = z.object({
   subject: z.string().min(5, { message: "Le sujet doit contenir au moins 5 caractères." }),
@@ -67,122 +63,6 @@ const faqItems = [
     answer: "On-Chain fait référence aux transactions standards enregistrées sur la blockchain Bitcoin, idéales pour les montants plus importants et la sécurité. Le Lightning Network est une solution de seconde couche pour des transactions quasi-instantanées avec des frais très bas, parfaite pour les petits paiements quotidiens.",
   },
 ];
-
-
-const LiveChat = () => {
-  const { toast } = useToast();
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', content: "Bonjour ! Je suis l'assistant IA de Umuhora Tech Wallet. Comment puis-je vous aider aujourd'hui ?" }
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Scroll to bottom when new messages are added
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const userMessage: ChatMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    try {
-      const response = await api.sendChatMessage({
-        history: messages,
-        message: input,
-      });
-
-      const modelMessage: ChatMessage = { role: 'model', content: response.response };
-      setMessages(prev => [...prev, modelMessage]);
-
-    } catch (error: any) {
-      const errorMessage: ChatMessage = { role: 'model', content: "Désolé, une erreur est survenue. Veuillez réessayer." };
-      setMessages(prev => [...prev, errorMessage]);
-      toast({
-        variant: "destructive",
-        title: "Erreur de Chat",
-        description: error.message,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  return (
-     <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><MessageSquare />Live AI Chat</CardTitle>
-          <CardDescription>
-            Posez une question à notre assistant IA pour obtenir une aide instantanée.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg h-96 flex flex-col">
-            <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-              <div className="space-y-4">
-                {messages.map((msg, index) => (
-                  <div key={index} className={cn(
-                    "flex items-end gap-2",
-                    msg.role === 'user' ? 'justify-end' : 'justify-start'
-                  )}>
-                    {msg.role === 'model' && (
-                       <Avatar className="h-8 w-8">
-                         <AvatarFallback><Bot className="size-5" /></AvatarFallback>
-                       </Avatar>
-                    )}
-                    <div className={cn(
-                      "max-w-xs rounded-lg p-3 text-sm",
-                      msg.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary'
-                    )}>
-                      {msg.content}
-                    </div>
-                     {msg.role === 'user' && (
-                       <Avatar className="h-8 w-8">
-                         <AvatarFallback><User className="size-5" /></AvatarFallback>
-                       </Avatar>
-                    )}
-                  </div>
-                ))}
-                 {isLoading && (
-                    <div className="flex items-end gap-2 justify-start">
-                         <Avatar className="h-8 w-8">
-                           <AvatarFallback><Bot className="size-5" /></AvatarFallback>
-                         </Avatar>
-                        <div className="bg-secondary p-3 rounded-lg flex items-center">
-                            <Loader2 className="size-5 animate-spin" />
-                        </div>
-                    </div>
-                )}
-              </div>
-            </ScrollArea>
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2 border-t p-4">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Posez votre question..."
-                disabled={isLoading}
-                autoComplete="off"
-              />
-              <Button type="submit" disabled={isLoading || !input.trim()}>
-                <Send className="size-4" />
-                <span className="sr-only">Envoyer</span>
-              </Button>
-            </form>
-          </div>
-        </CardContent>
-      </Card>
-  )
-}
 
 export default function SupportPage() {
   const { toast } = useToast();
@@ -223,8 +103,6 @@ export default function SupportPage() {
         </p>
       </div>
 
-      <LiveChat />
-
       <Card>
         <CardHeader>
           <CardTitle>Questions Fréquemment Posées (FAQ)</CardTitle>
@@ -248,7 +126,7 @@ export default function SupportPage() {
         <CardHeader>
           <CardTitle>Contacter le Support (Ticket)</CardTitle>
           <CardDescription>
-            Si l'IA ne peut pas vous aider, envoyez-nous un ticket.
+            Si vous ne trouvez pas de réponse, envoyez-nous un ticket.
           </CardDescription>
         </CardHeader>
         <CardContent>
