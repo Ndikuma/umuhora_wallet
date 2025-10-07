@@ -11,6 +11,7 @@ import { UserNav } from "@/components/user-nav";
 import { SettingsProvider } from "@/context/settings-context";
 import { WalletProvider } from "@/context/wallet-context";
 import { Suspense } from "react";
+import { UserProvider } from "@/context/user-provider";
 
 export default function MainLayout({
   children,
@@ -18,6 +19,7 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
+    <UserProvider>
       <WalletProvider>
         <SidebarProvider>
           <Sidebar collapsible="icon" variant="inset">
@@ -40,7 +42,6 @@ export default function MainLayout({
           </SidebarInset>
         </SidebarProvider>
       </WalletProvider>
+    </UserProvider>
   );
 }
-
-    
