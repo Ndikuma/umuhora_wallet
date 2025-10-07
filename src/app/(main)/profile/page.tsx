@@ -37,7 +37,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, isLoading
             {isLoading ? (
                 <Skeleton className="mt-2 h-7 w-20" />
             ) : (
-                <p className="text-2xl font-bold">{value}</p>
+                <p className="text-2xl font-bold">{value ?? 'N/A'}</p>
             )}
         </Card>
     );
@@ -54,13 +54,14 @@ export default function ProfilePage() {
       setLoading(true);
       setError(null);
       try {
-        const [userResponse, walletResponse] = await Promise.all([
-            api.getUserProfile(),
-            api.getWallets()
-        ]);
+        const userResponse = await api.getUserProfile();
         setUser(userResponse.data);
-        if (walletResponse.data && walletResponse.data.length > 0) {
-          setWallet(walletResponse.data[0]);
+
+        if (userResponse.data.wallet_created) {
+          const walletResponse = await api.getWallets();
+          if (walletResponse.data && walletResponse.data.length > 0) {
+            setWallet(walletResponse.data[0]);
+          }
         }
       } catch (error: any) {
         const errorMsg = error.message || "Impossible de charger les données de l'utilisateur. Veuillez réessayer plus tard.";
@@ -178,40 +179,44 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
       
-      <div className="space-y-2">
-        <h2 className="text-xl font-bold tracking-tight md:text-2xl">Statistiques du Portefeuille</h2>
-        <p className="text-muted-foreground">
-          Aperçu de l'activité de votre portefeuille.
-        </p>
-      </div>
+      {wallet && (
+        <>
+          <div className="space-y-2 pt-4">
+            <h2 className="text-xl font-bold tracking-tight md:text-2xl">Statistiques du Portefeuille On-Chain</h2>
+            <p className="text-muted-foreground">
+              Aperçu de l'activité de votre portefeuille.
+            </p>
+          </div>
 
-       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <StatCard icon={BarChart2} title="Solde" value={wallet?.balance_formatted} isLoading={loading} />
-          <StatCard icon={Hash} title="Total Transactions" value={walletStats?.total_transactions} isLoading={loading} />
-          <StatCard icon={Clock} title="Âge du portefeuille (jours)" value={walletStats?.wallet_age_days} isLoading={loading} />
-          <StatCard icon={TrendingDown} title="Total envoyé" value={walletStats?.total_sent} isLoading={loading} />
-          <StatCard icon={TrendingUp} title="Total reçu" value={walletStats?.total_received} isLoading={loading} />
-          <Card className="flex flex-col justify-between p-4">
-            <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Adresse principale</p>
-                <UserIcon className="size-5 text-muted-foreground" />
-            </div>
-            {loading ? (
-                <Skeleton className="mt-2 h-7 w-full" />
-            ) : (
-                <div className="flex items-center gap-2 mt-2">
-                    <p className="text-sm font-code font-semibold break-all">{shortenText(wallet?.primary_address, 10, 10)}</p>
-                    <CopyButton
-                        textToCopy={wallet?.primary_address || ''}
-                        toastMessage="Adresse copiée"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                    />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <StatCard icon={BarChart2} title="Solde" value={wallet?.balance_formatted} isLoading={loading} />
+              <StatCard icon={Hash} title="Total Transactions" value={walletStats?.total_transactions} isLoading={loading} />
+              <StatCard icon={Clock} title="Âge du portefeuille (jours)" value={walletStats?.wallet_age_days} isLoading={loading} />
+              <StatCard icon={TrendingDown} title="Total envoyé" value={walletStats?.total_sent ? `${walletStats.total_sent} BTC` : '0 BTC'} isLoading={loading} />
+              <StatCard icon={TrendingUp} title="Total reçu" value={walletStats?.total_received ? `${walletStats.total_received} BTC` : '0 BTC'} isLoading={loading} />
+              <Card className="flex flex-col justify-between p-4">
+                <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">Adresse principale</p>
+                    <UserIcon className="size-5 text-muted-foreground" />
                 </div>
-            )}
-        </Card>
-       </div>
+                {loading ? (
+                    <Skeleton className="mt-2 h-7 w-full" />
+                ) : (
+                    <div className="flex items-center gap-2 mt-2">
+                        <p className="text-sm font-code font-semibold break-all">{shortenText(wallet?.primary_address, 10, 10)}</p>
+                        <CopyButton
+                            textToCopy={wallet?.primary_address || ''}
+                            toastMessage="Adresse copiée"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                        />
+                    </div>
+                )}
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   );
 }
