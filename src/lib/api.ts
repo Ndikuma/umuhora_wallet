@@ -3,7 +3,7 @@ import type { ApiResponse, AuthResponse, PaginatedResponse, Transaction, User, W
 import { sendSupportRequest } from '@/ai/flows/support-flow';
 import axios, { type AxiosError, type AxiosResponse, type AxiosInstance } from 'axios';
 
-const BACKEND_URL = 'https://mph-illinois-surveys-threaded.trycloudflare.com/';
+const BACKEND_URL = 'https://umuhoratech-wallet.onrender.com/';
 
 const axiosInstance = axios.create({
   baseURL: BACKEND_URL,
