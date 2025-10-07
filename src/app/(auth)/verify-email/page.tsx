@@ -77,8 +77,8 @@ export default function VerifyEmailPage() {
         description: "Votre compte est maintenant actif.",
       });
 
-      // After verification, we don't know if a wallet exists yet,
-      // so redirect to a safe place. Lightning is a good default.
+      // After verification, redirect to lightning page.
+      // User can create on-chain wallet later.
       router.push("/lightning");
       router.refresh();
 

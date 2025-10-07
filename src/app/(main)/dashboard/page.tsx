@@ -29,9 +29,10 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { cn, shortenText } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
-import type { Transaction, User } from "@/lib/types";
+import type { Transaction } from "@/lib/types";
 import { BalanceDisplay } from "@/components/balance-display";
 import { useWallet } from "@/context/wallet-context";
+import { useUser } from "@/hooks/use-user";
 
 const ActionButton = ({ icon: Icon, label, href, disabled = false }: { icon: React.ElementType, label: string, href: string, disabled?: boolean }) => {
   const content = (
@@ -66,33 +67,31 @@ export default function DashboardPage() {
   const [loadingTransactions, setLoadingTransactions] = useState(true);
   const [transactionsError, setTransactionsError] = useState<string | null>(null);
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
-  const { error: walletError } = useWallet();
-  const [user, setUser] = useState<User | null>(null);
+  const { error: walletError, isLoading: isWalletLoading } = useWallet();
+  const { user, isLoading: isUserLoading } = useUser();
 
-  const fetchInitialData = useCallback(async () => {
+  const fetchRecentTransactions = useCallback(async () => {
+    if (!user?.wallet_created) {
+      setLoadingTransactions(false);
+      return;
+    }
     setLoadingTransactions(true);
     setTransactionsError(null);
     try {
-        const [userRes, transactionsRes] = await Promise.all([
-            api.getUser(),
-            api.getRecentTransactions().catch(() => ({ data: [] })) // Don't fail if transactions fail
-        ]);
-        setUser(userRes.data);
-        setRecentTransactions(transactionsRes.data || []);
+      const transactionsRes = await api.getRecentTransactions();
+      setRecentTransactions(transactionsRes.data || []);
     } catch (err: any) {
-      setTransactionsError(err.message || "Impossible de charger les données.");
+      setTransactionsError(err.message || "Impossible de charger les transactions.");
     } finally {
       setLoadingTransactions(false);
     }
-  }, []);
+  }, [user?.wallet_created]);
 
   useEffect(() => {
-    if (!walletError) {
-      fetchInitialData();
-    } else {
-      setLoadingTransactions(false);
+    if (user) {
+      fetchRecentTransactions();
     }
-  }, [walletError, fetchInitialData]);
+  }, [user, fetchRecentTransactions]);
 
   
     if (walletError) {
@@ -116,7 +115,24 @@ export default function DashboardPage() {
         )
     }
 
-    if (!user?.wallet_created && !loadingTransactions) {
+    const isLoading = isWalletLoading || isUserLoading;
+
+    if (isLoading) {
+      return (
+         <div className="space-y-6">
+          <Skeleton className="h-40 w-full" />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <Skeleton className="h-28 w-full" />
+              <Skeleton className="h-28 w-full" />
+              <Skeleton className="h-28 w-full" />
+              <Skeleton className="h-28 w-full" />
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      )
+    }
+
+    if (!user?.wallet_created) {
       return (
         <Card className="flex flex-col items-center justify-center text-center p-8 gap-4">
           <Wallet className="size-16 text-primary" />
@@ -193,7 +209,7 @@ export default function DashboardPage() {
                         <AlertCircle className="size-8 mb-2" />
                         <p className="font-semibold">Erreur de chargement des transactions</p>
                         <p className="text-sm">{transactionsError}</p>
-                        <Button onClick={fetchInitialData} variant="secondary" className="mt-4">
+                        <Button onClick={fetchRecentTransactions} variant="secondary" className="mt-4">
                             {loadingTransactions && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                             Réessayer
                         </Button>

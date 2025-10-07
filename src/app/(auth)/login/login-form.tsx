@@ -57,8 +57,8 @@ export function LoginForm() {
         description: "Bienvenue !",
       });
 
-      const { user } = response.data;
-      if (user.wallet_created) {
+      const { wallet_created } = response.data;
+      if (wallet_created) {
         router.push("/dashboard");
       } else {
         router.push("/lightning");

@@ -11,8 +11,10 @@ export interface User {
 
 export interface AuthResponse {
   token: string;
-  user: User;
-  wallet: Wallet;
+  user_id: number;
+  username: string;
+  email: string;
+  wallet_created: boolean;
 }
 
 export interface WalletStats {
@@ -288,4 +290,9 @@ export interface PaginatedResponse<T> {
     next: string | null;
     previous: string | null;
     results: T[];
+}
+
+export interface PasswordChangePayload {
+    current_password:  string;
+    new_password:  string;
 }
