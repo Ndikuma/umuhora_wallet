@@ -15,7 +15,7 @@ const getTitleFromPath = (path: string) => {
     if (path.startsWith('/profile')) return 'Profil';
     if (path.startsWith('/settings')) return 'Paramètres';
     if (path.startsWith('/lightning')) return 'Lightning';
-    return 'Aperçu';
+    return 'On-chain';
 }
 
 export function HeaderTitle() {

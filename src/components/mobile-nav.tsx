@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -36,7 +37,7 @@ export function MobileNav() {
 
   // Unified structure: all use href (no `path`)
   const menuItems = [
-    { href: "/dashboard", icon: Bitcoin, label: "On chain" },
+    { href: "/dashboard", icon: Bitcoin, label: "On-chain" },
     receiveAction,
     { href: "/orders", icon: Receipt, label: "Commandes" },
     { href: "/lightning", icon: Zap, label: "Lightning" },
@@ -48,7 +49,7 @@ export function MobileNav() {
         {/* Left two icons */}
         {menuItems.slice(0, 2).map((item) => {
           const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+            pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
 
           return (
             <Link

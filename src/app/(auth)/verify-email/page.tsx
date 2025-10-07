@@ -76,7 +76,10 @@ export default function VerifyEmailPage() {
         title: "Vérification réussie",
         description: "Votre compte est maintenant actif.",
       });
-      router.push("/create-or-restore");
+
+      // After verification, we don't know if a wallet exists yet,
+      // so redirect to a safe place. Lightning is a good default.
+      router.push("/lightning");
       router.refresh();
 
     } catch (error: any) {

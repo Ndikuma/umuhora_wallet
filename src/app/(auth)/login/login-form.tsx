@@ -61,7 +61,7 @@ export function LoginForm() {
       if (user.wallet_created) {
         router.push("/dashboard");
       } else {
-        router.push("/create-or-restore");
+        router.push("/lightning");
       }
       router.refresh(); 
 

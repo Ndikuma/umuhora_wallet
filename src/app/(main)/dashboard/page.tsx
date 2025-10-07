@@ -14,6 +14,7 @@ import {
   Receipt,
   Wallet,
   Loader2,
+  PlusCircle,
 } from "lucide-react";
 import {
   Card,
@@ -28,7 +29,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { cn, shortenText } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 import api from "@/lib/api";
-import type { Transaction } from "@/lib/types";
+import type { Transaction, User } from "@/lib/types";
 import { BalanceDisplay } from "@/components/balance-display";
 import { useWallet } from "@/context/wallet-context";
 
@@ -66,28 +67,32 @@ export default function DashboardPage() {
   const [transactionsError, setTransactionsError] = useState<string | null>(null);
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const { error: walletError } = useWallet();
+  const [user, setUser] = useState<User | null>(null);
 
-  const fetchTransactions = useCallback(async () => {
+  const fetchInitialData = useCallback(async () => {
     setLoadingTransactions(true);
     setTransactionsError(null);
     try {
-      const transactionsRes = await api.getRecentTransactions();
-      setRecentTransactions(transactionsRes.data || []);
+        const [userRes, transactionsRes] = await Promise.all([
+            api.getUser(),
+            api.getRecentTransactions().catch(() => ({ data: [] })) // Don't fail if transactions fail
+        ]);
+        setUser(userRes.data);
+        setRecentTransactions(transactionsRes.data || []);
     } catch (err: any) {
-      setTransactionsError(err.message || "Impossible de charger les transactions récentes.");
+      setTransactionsError(err.message || "Impossible de charger les données.");
     } finally {
       setLoadingTransactions(false);
     }
   }, []);
 
   useEffect(() => {
-    // Only fetch transactions if the wallet context doesn't have an error
     if (!walletError) {
-      fetchTransactions();
+      fetchInitialData();
     } else {
       setLoadingTransactions(false);
     }
-  }, [walletError, fetchTransactions]);
+  }, [walletError, fetchInitialData]);
 
   
     if (walletError) {
@@ -111,6 +116,31 @@ export default function DashboardPage() {
         )
     }
 
+    if (!user?.wallet_created && !loadingTransactions) {
+      return (
+        <Card className="flex flex-col items-center justify-center text-center p-8 gap-4">
+          <Wallet className="size-16 text-primary" />
+          <CardTitle>Bienvenue sur votre portefeuille On-Chain</CardTitle>
+          <CardDescription className="max-w-md">
+            Vous n'avez pas encore de portefeuille on-chain. Créez-en un nouveau ou restaurez un portefeuille existant pour commencer à gérer vos Bitcoins.
+          </CardDescription>
+          <div className="flex gap-4 pt-4">
+            <Button asChild size="lg">
+              <Link href="/create-wallet">
+                <PlusCircle className="mr-2"/>
+                Créer un Portefeuille
+              </Link>
+            </Button>
+             <Button asChild variant="secondary" size="lg">
+              <Link href="/restore-wallet">
+                Restaurer
+              </Link>
+            </Button>
+          </div>
+        </Card>
+      )
+    }
+
 
   return (
     <div className="flex flex-col gap-4 md:gap-8">
@@ -118,7 +148,7 @@ export default function DashboardPage() {
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle className="text-lg">Solde Total</CardTitle>
-            <CardDescription>Aperçu de votre portefeuille</CardDescription>
+            <CardDescription>Aperçu de votre portefeuille on-chain</CardDescription>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsBalanceVisible(!isBalanceVisible)}>
               {isBalanceVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -130,7 +160,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
       
-      <ActionCard disabled={!!walletError} />
+      <ActionCard disabled={!!walletError || !user?.wallet_created} />
 
 
        <div className="grid grid-cols-1 gap-4 md:gap-6">
@@ -163,7 +193,7 @@ export default function DashboardPage() {
                         <AlertCircle className="size-8 mb-2" />
                         <p className="font-semibold">Erreur de chargement des transactions</p>
                         <p className="text-sm">{transactionsError}</p>
-                        <Button onClick={fetchTransactions} variant="secondary" className="mt-4">
+                        <Button onClick={fetchInitialData} variant="secondary" className="mt-4">
                             {loadingTransactions && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                             Réessayer
                         </Button>
