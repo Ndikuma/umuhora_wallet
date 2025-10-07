@@ -12,9 +12,7 @@ export interface User {
 
 export interface AuthResponse {
   token: string;
-  user_id: number;
-  username: string;
-  email: string;
+  user: User;
   wallet_created: boolean;
   tfa_required?: boolean;
 }

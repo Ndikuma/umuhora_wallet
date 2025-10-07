@@ -47,7 +47,7 @@ export function LoginForm() {
     setNeedsVerification(null);
     try {
       const response = await api.login(values);
-      const { token, tfa_required, wallet_created } = response.data;
+      const { token, tfa_required, wallet_created, user } = response.data;
       
       localStorage.setItem('authToken', token);
       document.cookie = `authToken=${token}; path=/; max-age=604800; samesite=lax`;
@@ -55,9 +55,9 @@ export function LoginForm() {
       if (tfa_required) {
         toast({
           title: "Vérification Requise",
-          description: "Veuillez entrer votre code OTP pour continuer.",
+          description: "Un code a été envoyé à votre adresse e-mail. Veuillez le saisir pour continuer.",
         });
-        router.push("/verify-otp");
+        router.push(`/verify-email?email=${encodeURIComponent(user.email)}&next=dashboard`);
       } else {
         toast({
           title: "Connexion réussie",

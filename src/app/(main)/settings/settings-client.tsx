@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -70,9 +69,6 @@ const passwordChangeSchema = z.object({
   new_password: z.string().min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères."),
 });
 
-const otpSchema = z.object({
-  otp: z.string().length(6, "L'OTP doit contenir 6 caractères."),
-});
 
 export function SettingsClient() {
   const { toast } = useToast();
@@ -90,15 +86,8 @@ export function SettingsClient() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  // 2FA State
-  const [is2FASetupOpen, setIs2FASetupOpen] = useState(false);
-  const [is2FADisableOpen, setIs2FADisableOpen] = useState(false);
-  const [is2FALoading, setIs2FALoading] = useState(false);
-  const [twoFactorSecret, setTwoFactorSecret] = useState<{ qr_code: string; secret: string } | null>(null);
-
   const restoreForm = useForm<z.infer<typeof restoreFormSchema>>({ resolver: zodResolver(restoreFormSchema), defaultValues: { data: "" } });
   const passwordForm = useForm<z.infer<typeof passwordChangeSchema>>({ resolver: zodResolver(passwordChangeSchema), defaultValues: { current_password: "", new_password: "" } });
-  const otpForm = useForm<z.infer<typeof otpSchema>>({ resolver: zodResolver(otpSchema), defaultValues: { otp: "" } });
 
   const handleBackup = async () => {
     setIsBackupLoading(true);
@@ -140,54 +129,6 @@ export function SettingsClient() {
       toast({ variant: "destructive", title: "Échec de la modification du mot de passe", description: error.message });
     } finally {
       setIsChangingPassword(false);
-    }
-  };
-
-  const handle2FAToggle = async (enabled: boolean) => {
-    if (enabled) {
-      setIs2FALoading(true);
-      setIs2FASetupOpen(true);
-      try {
-        const response = await api.setup2FA();
-        setTwoFactorSecret(response.data);
-      } catch (error: any) {
-        toast({ variant: "destructive", title: "Erreur 2FA", description: error.message });
-        setIs2FASetupOpen(false);
-      } finally {
-        setIs2FALoading(false);
-      }
-    } else {
-      setIs2FADisableOpen(true);
-    }
-  };
-
-  const handleEnable2FA = async (values: z.infer<typeof otpSchema>) => {
-    setIs2FALoading(true);
-    try {
-      await api.enable2FA(values.otp);
-      toast({ title: "2FA activé", description: "L'authentification à deux facteurs est maintenant activée pour votre compte." });
-      refetchUser();
-      setIs2FASetupOpen(false);
-      otpForm.reset();
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Échec de l'activation 2FA", description: error.message });
-    } finally {
-      setIs2FALoading(false);
-    }
-  };
-
-  const handleDisable2FA = async (values: z.infer<typeof otpSchema>) => {
-    setIs2FALoading(true);
-    try {
-      await api.disable2FA(values.otp);
-      toast({ title: "2FA désactivé", description: "L'authentification à deux facteurs est maintenant désactivée." });
-      refetchUser();
-      setIs2FADisableOpen(false);
-      otpForm.reset();
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Échec de la désactivation 2FA", description: error.message });
-    } finally {
-      setIs2FALoading(false);
     }
   };
 
@@ -275,18 +216,6 @@ export function SettingsClient() {
           <CardDescription>Gérez la sécurité et les données du portefeuille.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-           <div className="flex flex-col items-start justify-between gap-4 rounded-lg border p-4 sm:flex-row sm:items-center">
-            <div className="space-y-1">
-              <p className="font-semibold">Authentification à deux facteurs (2FA)</p>
-              <p className="text-sm text-muted-foreground">Ajoutez une couche de sécurité supplémentaire à votre compte lors de la connexion.</p>
-            </div>
-            <Switch
-              checked={user?.is_2fa_enabled}
-              onCheckedChange={handle2FAToggle}
-              disabled={is2FALoading}
-              aria-label="Toggle Two-Factor Authentication"
-            />
-          </div>
           <div className="space-y-4 rounded-lg border p-4">
              <div className="space-y-1">
               <p className="font-semibold">Changer le mot de passe</p>
@@ -427,85 +356,6 @@ export function SettingsClient() {
                    </CopyButton>
               </AlertDialogFooter>
           </AlertDialogContent>
-      </AlertDialog>
-
-      {/* 2FA Enable Dialog */}
-      <AlertDialog open={is2FASetupOpen} onOpenChange={setIs2FASetupOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Activer l'Authentification à Deux Facteurs</AlertDialogTitle>
-            <AlertDialogDescription>
-              Scannez ce QR code avec votre application d'authentification (ex: Google Authenticator, Authy), puis entrez le code à 6 chiffres pour confirmer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex flex-col items-center gap-6">
-            {twoFactorSecret?.qr_code ? (
-              <Image src={twoFactorSecret.qr_code} alt="QR Code 2FA" width={200} height={200} data-ai-hint="qr code" />
-            ) : (
-              <Skeleton className="h-48 w-48" />
-            )}
-            <Form {...otpForm}>
-              <form onSubmit={otpForm.handleSubmit(handleEnable2FA)} className="w-full space-y-4">
-                <FormField
-                  control={otpForm.control}
-                  name="otp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Code de Vérification</FormLabel>
-                      <FormControl>
-                        <Input placeholder="123456" {...field} autoComplete="one-time-code" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <AlertDialogFooter className="pt-2">
-                    <Button type="button" variant="ghost" onClick={() => setIs2FASetupOpen(false)} disabled={is2FALoading}>Annuler</Button>
-                    <Button type="submit" disabled={is2FALoading}>
-                        {is2FALoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <ShieldCheck className="mr-2 size-4"/>}
-                        {is2FALoading ? "Vérification..." : "Activer"}
-                    </Button>
-                </AlertDialogFooter>
-              </form>
-            </Form>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* 2FA Disable Dialog */}
-      <AlertDialog open={is2FADisableOpen} onOpenChange={setIs2FADisableOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Désactiver l'Authentification à Deux Facteurs</AlertDialogTitle>
-            <AlertDialogDescription>
-              Pour confirmer, veuillez entrer un code de votre application d'authentification.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <Form {...otpForm}>
-            <form onSubmit={otpForm.handleSubmit(handleDisable2FA)} className="w-full space-y-4 pt-4">
-              <FormField
-                control={otpForm.control}
-                name="otp"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code de Vérification</FormLabel>
-                    <FormControl>
-                      <Input placeholder="123456" {...field} autoComplete="one-time-code" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <AlertDialogFooter className="pt-2">
-                  <Button type="button" variant="ghost" onClick={() => setIs2FADisableOpen(false)} disabled={is2FALoading}>Annuler</Button>
-                  <Button type="submit" variant="destructive" disabled={is2FALoading}>
-                      {is2FALoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-                      {is2FALoading ? "Désactivation..." : "Désactiver"}
-                  </Button>
-              </AlertDialogFooter>
-            </form>
-          </Form>
-        </AlertDialogContent>
       </AlertDialog>
     </>
   );

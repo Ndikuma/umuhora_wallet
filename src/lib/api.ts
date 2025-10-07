@@ -96,12 +96,6 @@ const changePassword = (payload: PasswordChangePayload) => axiosInstance.post('/
 const resetPassword = (email: string) => publicAxiosInstance.post('/auth/reset_password/', { email });
 const confirmReset = (data: { email: string, otp: string, password: any }) => publicAxiosInstance.post('/auth/confirm_reset/', data);
 
-// --- 2FA / OTP ---
-const setup2FA = (): Promise<AxiosResponse<TwoFactorSecret>> => axiosInstance.post('/auth/2fa/setup/');
-const enable2FA = (otp: string): Promise<AxiosResponse<any>> => axiosInstance.post('/auth/2fa/enable/', { otp });
-const disable2FA = (otp: string): Promise<AxiosResponse<any>> => axiosInstance.post('/auth/2fa/disable/', { otp });
-const verifyOtpLogin = (otp: string): Promise<AxiosResponse<AuthResponse>> => axiosInstance.post('/auth/2fa/verify/', { otp });
-
 
 // --- User ---
 const getUserProfile = (): Promise<AxiosResponse<User>> => axiosInstance.get('user/profile/');
@@ -188,10 +182,6 @@ const api = {
     changePassword,
     resetPassword,
     confirmReset,
-    setup2FA,
-    enable2FA,
-    disable2FA,
-    verifyOtpLogin,
     getUserProfile,
     updateUserProfile,
     getUser,
