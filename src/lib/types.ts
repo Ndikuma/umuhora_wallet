@@ -297,9 +297,25 @@ export interface PasswordChangePayload {
     new_password:  string;
 }
 
+// --- Support Types ---
+
 export interface SupportRequestOutput {
   ticketId: string;
   category: string;
   summary: string;
   status: string;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  content: string;
+}
+
+export interface ChatWithSupportInput {
+  history: ChatMessage[];
+  message: string;
+}
+
+export interface ChatWithSupportOutput {
+  response: string;
 }
