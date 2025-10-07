@@ -1,7 +1,7 @@
 
-# Umuhora Tech Wallet
+# Umuhora Wallet
 
-Bienvenue sur **Umuhora Tech Wallet**, un portefeuille Bitcoin open-source et non-custodial. Ce projet a été conçu pour offrir un moyen simple et sécurisé de gérer vos Bitcoins, où l'utilisateur a le contrôle total de ses clés.
+Bienvenue sur **Umuhora Wallet**, un portefeuille Bitcoin open-source et non-custodial. Ce projet a été conçu pour offrir un moyen simple et sécurisé de gérer vos Bitcoins, où l'utilisateur a le contrôle total de ses clés.
 
 ## Fonctionnalités
 
@@ -29,7 +29,7 @@ Pour lancer ce projet sur votre machine, suivez ces étapes :
 1.  **Clonez le projet**:
     ```bash
     git clone https://github.com/your-repo-url.git
-    cd umuhora-tech-wallet
+    cd umuhora-wallet
     ```
 
 2.  **Installez les dépendances**:

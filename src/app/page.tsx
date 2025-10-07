@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { BitcoinIcon } from "@/components/icons";
+import { UmuhoraIcon } from "@/components/icons";
 import { ArrowRight, Loader2 } from "lucide-react";
 
 function getCookie(name: string): string | null {
@@ -24,9 +24,9 @@ function LandingPage() {
       <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-background/80 backdrop-blur-sm">
         <div className="container flex h-20 items-center justify-between py-6">
           <Link href="/" className="flex items-center gap-3">
-            <BitcoinIcon className="size-8 text-primary" />
+            <UmuhoraIcon className="size-8 text-primary" />
             <h2 className="text-xl font-bold tracking-tight">
-              Umuhora Tech Wallet
+              Umuhora Wallet
             </h2>
           </Link>
           <nav className="hidden items-center gap-2 md:flex">

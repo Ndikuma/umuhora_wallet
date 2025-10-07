@@ -1,5 +1,5 @@
 
-import { BitcoinIcon } from "@/components/icons";
+import { UmuhoraIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,8 +15,8 @@ export default function CreateOrRestorePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex items-center gap-2">
-        <BitcoinIcon className="size-8 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">Umuhora Tech Wallet</h1>
+        <UmuhoraIcon className="size-8 text-primary" />
+        <h1 className="text-2xl font-bold tracking-tight">Umuhora Wallet</h1>
       </div>
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">

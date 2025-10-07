@@ -1,6 +1,22 @@
 
 import type { SVGProps } from "react"
 
+export function UmuhoraIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      role="img"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+        <path
+          d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM17 17C17 17.55 16.55 18 16 18H8C7.45 18 7 17.55 7 17V10C7 9.45 7.45 9 8 9H16C16.55 9 17 9.45 17 10V17ZM16 7H8C7.45 7 7 6.55 7 6V6C7 5.45 7.45 5 8 5H16C16.55 5 17 5.45 17 6V6C17 6.55 16.55 7 16 7Z"
+        />
+    </svg>
+  );
+}
+
 export function BitcoinIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
