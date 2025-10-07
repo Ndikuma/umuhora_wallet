@@ -38,8 +38,8 @@ export default function RootLayout({
           <ThemeProvider>
             <UserProvider>
               {children}
+              <Toaster />
             </UserProvider>
-            <Toaster />
           </ThemeProvider>
         </SettingsProvider>
       </body>
