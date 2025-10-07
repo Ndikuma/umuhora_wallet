@@ -23,7 +23,7 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Bon Retour</CardTitle>
           <CardDescription>
-            Entrez votre nom d'utilisateur et votre mot de passe pour accéder à votre portefeuille.
+            Entrez vos identifiants pour accéder à votre portefeuille.
           </CardDescription>
         </CardHeader>
         <CardContent>

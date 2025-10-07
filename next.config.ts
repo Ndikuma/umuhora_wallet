@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'featuring-shipped-pastor-amenities.trycloudflare.com',
+        hostname: 'gourmet-rev-administration-others.trycloudflare.com',
         port: '',
         pathname: '/**',
       },
@@ -49,7 +49,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'http',
-        hostname: 'indicating-exit-customise-vegetation.trycloudflare.com',
+        hostname: 'mph-illinois-surveys-threaded.trycloudflare.com',
         port: '',
         pathname: '/**',
       },

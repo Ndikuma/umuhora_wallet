@@ -19,7 +19,7 @@ export default function RegisterPage() {
           Umuhora Tech Wallet
         </h1>
       </Link>
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-xl">Créer un compte</CardTitle>
           <CardDescription>

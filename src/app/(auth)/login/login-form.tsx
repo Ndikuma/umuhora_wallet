@@ -19,9 +19,11 @@ import { useToast } from "@/hooks/use-toast";
 import api from '@/lib/api';
 import { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const formSchema = z.object({
-  username: z.string().min(1, { message: "Veuillez entrer votre nom d'utilisateur." }),
+  identifier: z.string().min(1, { message: "Veuillez entrer votre e-mail ou nom d'utilisateur." }),
   password: z.string().min(1, { message: "Veuillez entrer votre mot de passe." }),
 });
 
@@ -30,17 +32,19 @@ export function LoginForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      identifier: "",
       password: "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+    setNeedsVerification(null);
     try {
       const response = await api.login(values);
       const token = response.data.token;
@@ -62,27 +66,48 @@ export function LoginForm() {
       router.refresh(); 
 
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Échec de la connexion",
-        description: error.message,
-      });
+      if (error.message?.includes("Email not verified")) {
+        setNeedsVerification(values.identifier);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Échec de la connexion",
+          description: error.message,
+        });
+      }
     } finally {
         setIsLoading(false);
     }
   }
 
+  const handleGoToVerification = () => {
+    if (needsVerification) {
+      router.push(`/verify-email?email=${encodeURIComponent(needsVerification)}`);
+    }
+  };
+
   return (
     <Form {...form}>
+      {needsVerification && (
+        <Alert variant="warning" className="mb-4">
+          <AlertTitle>Vérification Requise</AlertTitle>
+          <AlertDescription>
+            Votre e-mail n'a pas été vérifié.
+            <Button variant="link" onClick={handleGoToVerification} className="p-0 h-auto ml-1">
+              Vérifiez votre e-mail pour continuer.
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="username"
+          name="identifier"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nom d'utilisateur</FormLabel>
+              <FormLabel>E-mail ou Nom d'utilisateur</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="votre nom d'utilisateur" {...field} autoComplete="username" />
+                <Input type="text" placeholder="votre e-mail ou nom d'utilisateur" {...field} autoComplete="username" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -93,7 +118,12 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Mot de passe</FormLabel>
+              <div className="flex justify-between items-center">
+                <FormLabel>Mot de passe</FormLabel>
+                 <Link href="/forgot-password" passHref legacyBehavior>
+                    <a className="text-sm font-medium text-primary hover:underline">Mot de passe oublié?</a>
+                </Link>
+              </div>
               <div className="relative">
                 <FormControl>
                   <Input 

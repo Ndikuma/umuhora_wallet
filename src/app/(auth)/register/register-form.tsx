@@ -17,9 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import api from '@/lib/api';
-import type { AuthResponse } from '@/lib/types';
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   username: z.string().min(3, { message: "Le nom d'utilisateur doit contenir au moins 3 caractères." }),
@@ -45,22 +44,23 @@ export function RegisterForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const response = await api.register(values);
-      const token = response.data.token;
-
-      localStorage.setItem('authToken', token);
-      // Set cookie for client-side checks
-      document.cookie = `authToken=${token}; path=/; max-age=604800; samesite=lax`;
-
+      await api.register(values);
       toast({
         title: "Compte créé",
-        description: "Veuillez configurer votre portefeuille pour continuer.",
+        description: "Un code de vérification a été envoyé à votre e-mail.",
       });
-      router.push("/create-or-restore");
-      router.refresh();
+      router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
     } catch (error: any) {
        const errorDetails = error.response?.data?.error?.details;
-       const errorMsg = errorDetails?.email?.[0] || errorDetails?.password?.[0] || errorDetails?.username?.[0] || error.response?.data?.message || "Une erreur inattendue est survenue.";
+       let errorMsg = "Une erreur inattendue est survenue.";
+       if (errorDetails && typeof errorDetails === 'string') {
+          errorMsg = errorDetails;
+       } else if (errorDetails && typeof errorDetails === 'object') {
+          errorMsg = errorDetails?.email?.[0] || errorDetails?.password?.[0] || errorDetails?.username?.[0] || error.response?.data?.message || "Une erreur inattendue est survenue.";
+       } else if (error.message) {
+          errorMsg = error.message;
+       }
+      
       toast({
         variant: "destructive",
         title: "Échec de l'inscription",

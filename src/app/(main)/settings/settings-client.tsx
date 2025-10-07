@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CopyButton } from "@/components/copy-button";
-import { ShieldAlert, Loader2, Moon, Sun, Laptop } from "lucide-react";
+import { ShieldAlert, Loader2, Moon, Sun, Laptop, KeyRound, Eye, EyeOff } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Form,
@@ -47,6 +47,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 const restoreFormSchema = z.object({
   data: z.string().min(20, { message: "Les données de restauration semblent trop courtes." })
@@ -61,6 +62,11 @@ const restoreFormSchema = z.object({
     }, "Veuillez entrer une phrase mnémonique valide de 12/24 mots ou une clé privée WIF/étendue."),
 });
 
+const passwordChangeSchema = z.object({
+  current_password: z.string().min(1, "Le mot de passe actuel est requis."),
+  new_password: z.string().min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères."),
+});
+
 export function SettingsClient() {
   const { toast } = useToast();
   const { settings, setCurrency, setDisplayUnit, setTheme } = useSettings();
@@ -69,10 +75,18 @@ export function SettingsClient() {
   const [isBackupDialogOpen, setIsBackupDialogOpen] = useState(false);
   const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const restoreForm = useForm<z.infer<typeof restoreFormSchema>>({
     resolver: zodResolver(restoreFormSchema),
     defaultValues: { data: "" },
+  });
+
+  const passwordForm = useForm<z.infer<typeof passwordChangeSchema>>({
+    resolver: zodResolver(passwordChangeSchema),
+    defaultValues: { current_password: "", new_password: "" },
   });
 
 
@@ -121,6 +135,26 @@ export function SettingsClient() {
       setIsRestoreDialogOpen(false);
     }
   }
+
+  const handlePasswordChange = async (values: z.infer<typeof passwordChangeSchema>) => {
+    setIsChangingPassword(true);
+    try {
+      await api.changePassword(values);
+      toast({
+        title: "Mot de passe modifié",
+        description: "Votre mot de passe a été mis à jour avec succès.",
+      });
+      passwordForm.reset();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Échec de la modification du mot de passe",
+        description: error.message,
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   return (
     <>
@@ -208,6 +242,56 @@ export function SettingsClient() {
           <CardDescription>Gérez la sécurité et les données du portefeuille.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-4 rounded-lg border p-4">
+             <div className="space-y-1">
+              <p className="font-semibold">Changer le mot de passe</p>
+              <p className="text-sm text-muted-foreground">Mettez à jour le mot de passe de votre compte.</p>
+            </div>
+             <Form {...passwordForm}>
+                <form onSubmit={passwordForm.handleSubmit(handlePasswordChange)} className="space-y-4">
+                  <FormField
+                    control={passwordForm.control}
+                    name="current_password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mot de passe actuel</FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input type={showCurrentPassword ? "text" : "password"} {...field} className="pr-10" />
+                          </FormControl>
+                          <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
+                            {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={passwordForm.control}
+                    name="new_password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nouveau mot de passe</FormLabel>
+                        <div className="relative">
+                           <FormControl>
+                              <Input type={showNewPassword ? "text" : "password"} {...field} className="pr-10" />
+                           </FormControl>
+                           <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
+                             {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                           </button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" disabled={isChangingPassword}>
+                    {isChangingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <KeyRound className="mr-2 h-4 w-4"/>}
+                    Changer le mot de passe
+                  </Button>
+                </form>
+             </Form>
+          </div>
           <div className="flex flex-col items-start justify-between gap-4 rounded-lg border p-4 sm:flex-row sm:items-center">
             <div className="space-y-1">
               <p className="font-semibold">Sauvegarder le Portefeuille</p>
@@ -312,5 +396,3 @@ export function SettingsClient() {
     </>
   );
 }
-
-    
