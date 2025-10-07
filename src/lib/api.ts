@@ -100,7 +100,7 @@ const confirmReset = (data: { email: string, otp: string, password: any }) => pu
 // --- User ---
 const getUserProfile = (): Promise<AxiosResponse<User>> => axiosInstance.get('user/profile/');
 const updateUserProfile = (id: number, data: { first_name?: string, last_name?: string }): Promise<AxiosResponse<User>> => axiosInstance.patch(`user/${id}/`, data);
-const getUser = (): Promise<AxiosResponse<User>> => axiosInstance.get('user/');
+const getUser = (): Promise<AxiosResponse<User>> => axiosInstance.get('user/me/');
 
 
 // --- Wallet ---
