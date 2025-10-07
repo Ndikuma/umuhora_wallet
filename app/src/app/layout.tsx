@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -33,14 +34,14 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className={cn("font-body antialiased", fontBody.variable, fontCode.variable)}>
-        <UserProvider>
-          <SettingsProvider>
-            <ThemeProvider>
+        <SettingsProvider>
+          <ThemeProvider>
+            <UserProvider>
               {children}
               <Toaster />
-            </ThemeProvider>
-          </SettingsProvider>
-        </UserProvider>
+            </UserProvider>
+          </ThemeProvider>
+        </SettingsProvider>
       </body>
     </html>
   );

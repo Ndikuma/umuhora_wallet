@@ -13,25 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
-import type { ProfileData } from "@/lib/types";
+import type { User, Wallet } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  ArrowRight,
-  User as UserIcon,
-  BarChart2,
-  Clock,
-  Hash,
-  TrendingUp,
-  TrendingDown,
-  Copy,
-  AlertCircle,
-  Loader2,
-  Zap,
-  FileText,
-  Mail,
-  Send,
-  Download,
-} from "lucide-react";
+import { ArrowRight, User as UserIcon, BarChart2, Clock, Hash, TrendingUp, TrendingDown, Copy, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { shortenText } from "@/lib/utils";
 import { CopyButton } from "@/components/copy-button";
@@ -41,12 +25,9 @@ interface StatCardProps {
   title: string;
   value: string | number | undefined;
   isLoading: boolean;
-  unit?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, isLoading, unit }) => {
-    const displayValue = value !== undefined && value !== null ? (typeof value === 'number' ? value.toLocaleString('fr-FR') : value) : 'N/A';
-    
+const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, isLoading }) => {
     return (
         <Card className="flex flex-col justify-between p-4">
             <div className="flex items-center justify-between">
@@ -56,10 +37,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, isLoading
             {isLoading ? (
                 <Skeleton className="mt-2 h-7 w-20" />
             ) : (
-                <p className="text-2xl font-bold">
-                    {displayValue}
-                    {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
-                </p>
+                <p className="text-2xl font-bold">{value ?? 'N/A'}</p>
             )}
         </Card>
     );
@@ -67,7 +45,8 @@ const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, isLoading
 
 export default function ProfilePage() {
   const { toast } = useToast();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [wallet, setWallet] = useState<Wallet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,10 +54,17 @@ export default function ProfilePage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await api.getUserProfile();
-        setProfile(response.data);
+        const userResponse = await api.getUserProfile();
+        setUser(userResponse.data);
+
+        if (userResponse.data.wallet_created) {
+          const walletResponse = await api.getWallets();
+          if (walletResponse.data && walletResponse.data.length > 0) {
+            setWallet(walletResponse.data[0]);
+          }
+        }
       } catch (error: any) {
-        const errorMsg = error.message || "Impossible de charger les données du profil. Veuillez réessayer plus tard.";
+        const errorMsg = error.message || "Impossible de charger les données de l'utilisateur. Veuillez réessayer plus tard.";
         setError(errorMsg);
         toast({
           variant: "destructive",
@@ -96,16 +82,13 @@ export default function ProfilePage() {
 
 
   const getInitials = () => {
-      if (!profile?.user) return "";
-      const { user } = profile;
+      if (!user) return "";
       const firstNameInitial = user.first_name?.[0] || '';
       const lastNameInitial = user.last_name?.[0] || '';
       return `${firstNameInitial}${lastNameInitial}`.toUpperCase() || user.username?.[0].toUpperCase();
   }
 
-  const user = profile?.user;
-  const onChainStats = profile?.onchain_wallet;
-  const lightningStats = profile?.lightning_wallet;
+  const walletStats = wallet?.stats;
 
   if (loading) {
     return (
@@ -163,7 +146,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Mon Profil</h1>
         <p className="text-muted-foreground">
@@ -196,61 +179,43 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
       
-      {onChainStats && (
-        <div className="space-y-4">
+      {wallet && (
+        <>
           <div className="space-y-2 pt-4">
             <h2 className="text-xl font-bold tracking-tight md:text-2xl">Statistiques du Portefeuille On-Chain</h2>
             <p className="text-muted-foreground">
-              Aperçu de l'activité de votre portefeuille principal.
+              Aperçu de l'activité de votre portefeuille.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <StatCard icon={BarChart2} title="Solde" value={onChainStats?.current_balance.toFixed(8)} unit="BTC" isLoading={loading} />
-              <StatCard icon={Hash} title="Total Transactions" value={onChainStats?.total_transactions} isLoading={loading} />
-              <StatCard icon={Clock} title="Âge du portefeuille (jours)" value={onChainStats?.wallet_age_days} isLoading={loading} />
-              <StatCard icon={TrendingDown} title="Total envoyé" value={Math.abs(onChainStats.total_sent).toFixed(8)} unit="BTC" isLoading={loading} />
-              <StatCard icon={TrendingUp} title="Total reçu" value={onChainStats?.total_received.toFixed(8)} unit="BTC" isLoading={loading} />
-              {onChainStats.primary_address && (
-                <Card className="flex flex-col justify-between p-4">
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Adresse principale</p>
-                        <UserIcon className="size-5 text-muted-foreground" />
-                    </div>
+              <StatCard icon={BarChart2} title="Solde" value={wallet?.balance_formatted} isLoading={loading} />
+              <StatCard icon={Hash} title="Total Transactions" value={walletStats?.total_transactions} isLoading={loading} />
+              <StatCard icon={Clock} title="Âge du portefeuille (jours)" value={walletStats?.wallet_age_days} isLoading={loading} />
+              <StatCard icon={TrendingDown} title="Total envoyé" value={walletStats?.total_sent ? `${walletStats.total_sent} BTC` : '0 BTC'} isLoading={loading} />
+              <StatCard icon={TrendingUp} title="Total reçu" value={walletStats?.total_received ? `${walletStats.total_received} BTC` : '0 BTC'} isLoading={loading} />
+              <Card className="flex flex-col justify-between p-4">
+                <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">Adresse principale</p>
+                    <UserIcon className="size-5 text-muted-foreground" />
+                </div>
+                {loading ? (
+                    <Skeleton className="mt-2 h-7 w-full" />
+                ) : (
                     <div className="flex items-center gap-2 mt-2">
-                        <p className="text-sm font-code font-semibold break-all">{shortenText(onChainStats?.primary_address, 10, 10)}</p>
+                        <p className="text-sm font-code font-semibold break-all">{shortenText(wallet?.primary_address, 10, 10)}</p>
                         <CopyButton
-                            textToCopy={onChainStats?.primary_address || ''}
+                            textToCopy={wallet?.primary_address || ''}
                             toastMessage="Adresse copiée"
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
                         />
                     </div>
-                </Card>
-              )}
+                )}
+            </Card>
           </div>
-        </div>
-      )}
-
-      {lightningStats && (
-        <div className="space-y-4">
-          <div className="space-y-2 pt-4">
-            <h2 className="text-xl font-bold tracking-tight md:text-2xl">Statistiques du Portefeuille Lightning</h2>
-            <p className="text-muted-foreground">
-              Aperçu de votre activité sur le Lightning Network.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <StatCard icon={Zap} title="Solde Lightning" value={lightningStats.balance} unit="sats" isLoading={loading} />
-              <StatCard icon={Download} title="Sats Reçus" value={lightningStats.total_received_sats} unit="sats" isLoading={loading} />
-              <StatCard icon={Send} title="Sats Envoyés" value={lightningStats.total_sent_sats} unit="sats" isLoading={loading} />
-              <StatCard icon={FileText} title="Total Factures" value={lightningStats.total_invoices} isLoading={loading} />
-              <StatCard icon={Mail} title="Factures en Attente" value={lightningStats.pending_invoices} isLoading={loading} />
-              <StatCard icon={Clock} title="Factures Expirées" value={lightningStats.expired_invoices} isLoading={loading} />
-          </div>
-        </div>
+        </>
       )}
     </div>
   );

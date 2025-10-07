@@ -1,5 +1,4 @@
 
-
 export interface User {
   id: number;
   username: string;
@@ -18,40 +17,11 @@ export interface AuthResponse {
   wallet_created: boolean;
 }
 
-export interface OnChainWalletStats {
-    total_transactions: number;
-    sent_transactions: number;
-    received_transactions: number;
-    total_sent: number;
-    total_received: number;
-    current_balance: number;
-    wallet_age_days: number;
-    balance_formatted?: string; // This might be added by frontend
-    primary_address?: string; // This might be added from wallet data
-}
-
-export interface LightningWalletStats {
-    balance: number;
-    total_invoices: number;
-    paid_invoices: number;
-    pending_invoices: number;
-    expired_invoices: number;
-    total_received_sats: number;
-    total_sent_sats: number;
-}
-
-export interface ProfileData {
-    user: User;
-    onchain_wallet: OnChainWalletStats | null;
-    lightning_wallet: LightningWalletStats | null;
-}
-
-
 export interface WalletStats {
     total_transactions: number;
     sent_transactions: number;
     received_transactions: number;
-t    total_sent: number;
+    total_sent: number;
     total_received: number;
     current_balance: number;
     wallet_age_days: number;
@@ -66,7 +36,7 @@ export interface Wallet {
   network?: string;
   status?: string;
   wallet_name?: string;
-  stats?: OnChainWalletStats;
+  stats?: WalletStats;
 }
 
 export interface Balance {
