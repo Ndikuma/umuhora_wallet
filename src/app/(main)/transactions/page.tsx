@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -26,6 +27,8 @@ import {
   Loader2,
   Zap,
   Bitcoin,
+  PlusCircle,
+  Wallet,
 } from "lucide-react";
 import { cn, shortenText } from "@/lib/utils";
 import api from "@/lib/api";
@@ -44,6 +47,7 @@ import {
 import { type VariantProps } from "class-variance-authority";
 import { AxiosError } from "axios";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUser } from "@/hooks/use-user";
 
 // --- On-Chain Components ---
 
@@ -164,6 +168,7 @@ const TransactionCard = ({ tx }: { tx: Transaction }) => {
 
 const OnChainTransactions = () => {
   const { toast } = useToast();
+  const { user, isLoading: isUserLoading } = useUser();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -193,10 +198,16 @@ const OnChainTransactions = () => {
   }, [toast]);
 
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    if (isUserLoading) return;
 
-  if (loading) {
+    if (user?.wallet_created) {
+        fetchTransactions();
+    } else {
+        setLoading(false);
+    }
+  }, [user, isUserLoading, fetchTransactions]);
+
+  if (loading || isUserLoading) {
     return (
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -220,6 +231,26 @@ const OnChainTransactions = () => {
             </div>
         </Card>
     );
+  }
+  
+  if (!user?.wallet_created) {
+    return (
+        <Card className="flex flex-col items-center justify-center text-center p-8 gap-4">
+          <Wallet className="size-16 text-primary" />
+          <CardTitle>Portefeuille On-Chain non trouvé</CardTitle>
+          <CardDescription className="max-w-md">
+             Pour voir vos transactions on-chain, vous devez d'abord créer ou restaurer un portefeuille.
+          </CardDescription>
+          <div className="flex gap-4 pt-4">
+            <Button asChild size="lg">
+              <Link href="/create-wallet">
+                <PlusCircle className="mr-2"/>
+                Créer un Portefeuille
+              </Link>
+            </Button>
+          </div>
+        </Card>
+    )
   }
 
   return (
