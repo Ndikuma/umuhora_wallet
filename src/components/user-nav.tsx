@@ -46,9 +46,10 @@ export function UserNav() {
     fetchUser();
   }, [fetchUser]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-        await api.logout();
+        // For token-based auth, logout is primarily a client-side action.
+        // We just need to remove the token.
     } catch(error) {
         console.error("Logout failed", error);
     } finally {
