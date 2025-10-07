@@ -1,9 +1,9 @@
 
-import type { ApiResponse, AuthResponse, PaginatedResponse, Transaction, User, Wallet, Balance, FeeEstimation, BuyProvider, BuyFeeCalculation, Order, SellProvider, BuyOrderPayload, SellOrderPayload, OrderUpdatePayload, LightningBalance, CreateInvoicePayload, LightningInvoice, PayLightningRequestPayload, LightningPayment, LightningTransaction, DecodeLightningRequestPayload, DecodedLightningRequest, LightningPaymentResponse, PasswordChangePayload, SupportRequestOutput } from '@/lib/types';
+import type { ApiResponse, AuthResponse, PaginatedResponse, Transaction, User, Wallet, Balance, FeeEstimation, BuyProvider, BuyFeeCalculation, Order, SellProvider, BuyOrderPayload, SellOrderPayload, OrderUpdatePayload, LightningBalance, CreateInvoicePayload, LightningInvoice, PayLightningRequestPayload, LightningPayment, LightningTransaction, DecodeLightningRequestPayload, DecodedLightningRequest, LightningPaymentResponse, PasswordChangePayload, SupportRequestOutput, TwoFactorSecret } from '@/lib/types';
 import { sendSupportRequest } from '@/ai/flows/support-flow';
 import axios, { type AxiosError, type AxiosResponse, type AxiosInstance } from 'axios';
 
-const BACKEND_URL = 'https://mph-illinois-surveys-threaded.trycloudflare.com/';
+const BACKEND_URL = 'https://umuhoratech-wallet.onrender.com/';
 
 const axiosInstance = axios.create({
   baseURL: BACKEND_URL,
@@ -100,7 +100,7 @@ const confirmReset = (data: { email: string, otp: string, password: any }) => pu
 // --- User ---
 const getUserProfile = (): Promise<AxiosResponse<User>> => axiosInstance.get('user/profile/');
 const updateUserProfile = (id: number, data: { first_name?: string, last_name?: string }): Promise<AxiosResponse<User>> => axiosInstance.patch(`user/${id}/`, data);
-const getUser = (): Promise<AxiosResponse<User>> => axiosInstance.get('user/');
+const getUser = (): Promise<AxiosResponse<User>> => axiosInstance.get('user/me/');
 
 
 // --- Wallet ---

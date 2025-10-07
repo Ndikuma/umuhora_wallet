@@ -31,32 +31,41 @@ import { UmuhoraIcon } from "@/components/icons";
 
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Veuillez entrer une adresse e-mail valide." }),
+  otp: z.string().min(6, { message: "L'OTP doit contenir 6 caractères." }).max(6),
 });
 
-export default function ForgotPasswordPage() {
+export default function VerifyOtpPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: "" },
+    defaultValues: { otp: "" },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await api.resetPassword(values.email);
+      const response = await api.verifyOtpLogin(values.otp);
+      const { wallet_created } = response.data;
+      
       toast({
-        title: "E-mail envoyé",
-        description: "Un OTP de réinitialisation de mot de passe a été envoyé à votre e-mail.",
+        title: "Vérification réussie",
+        description: "Connexion sécurisée terminée.",
       });
-      router.push(`/reset-password?email=${encodeURIComponent(values.email)}`);
+
+      if (wallet_created) {
+        router.push("/dashboard");
+      } else {
+        router.push("/create-or-restore");
+      }
+      router.refresh();
+
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Échec de l'envoi de l'e-mail",
+        title: "Échec de la vérification OTP",
         description: error.message,
       });
     } finally {
@@ -72,9 +81,9 @@ export default function ForgotPasswordPage() {
       </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Mot de passe oublié</CardTitle>
+          <CardTitle>Vérification à deux facteurs</CardTitle>
           <CardDescription>
-            Entrez votre e-mail pour recevoir un code de réinitialisation.
+            Pour votre sécurité, veuillez entrer le code de votre application d'authentification.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -82,12 +91,12 @@ export default function ForgotPasswordPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
-                name="email"
+                name="otp"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail</FormLabel>
+                    <FormLabel>Code OTP</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="m@example.com" {...field} />
+                      <Input placeholder="123456" {...field} autoComplete="one-time-code" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -95,7 +104,7 @@ export default function ForgotPasswordPage() {
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Envoyer l'e-mail de réinitialisation
+                Vérifier & Se connecter
               </Button>
             </form>
           </Form>

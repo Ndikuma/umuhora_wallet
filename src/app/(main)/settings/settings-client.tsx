@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CopyButton } from "@/components/copy-button";
-import { ShieldAlert, Loader2, Moon, Sun, Laptop, KeyRound, Eye, EyeOff } from "lucide-react";
+import { ShieldAlert, Loader2, Moon, Sun, Laptop, KeyRound, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Form,
@@ -48,6 +48,8 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { useUser } from "@/hooks/use-user";
 
 const restoreFormSchema = z.object({
   data: z.string().min(20, { message: "Les données de restauration semblent trop courtes." })
@@ -67,28 +69,25 @@ const passwordChangeSchema = z.object({
   new_password: z.string().min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères."),
 });
 
+
 export function SettingsClient() {
   const { toast } = useToast();
+  const { user, refetchUser } = useUser();
   const { settings, setCurrency, setDisplayUnit, setTheme } = useSettings();
+  
   const [wif, setWif] = useState<string | null>(null);
   const [isBackupLoading, setIsBackupLoading] = useState(false);
   const [isBackupDialogOpen, setIsBackupDialogOpen] = useState(false);
+  
   const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  const restoreForm = useForm<z.infer<typeof restoreFormSchema>>({
-    resolver: zodResolver(restoreFormSchema),
-    defaultValues: { data: "" },
-  });
-
-  const passwordForm = useForm<z.infer<typeof passwordChangeSchema>>({
-    resolver: zodResolver(passwordChangeSchema),
-    defaultValues: { current_password: "", new_password: "" },
-  });
-
+  const restoreForm = useForm<z.infer<typeof restoreFormSchema>>({ resolver: zodResolver(restoreFormSchema), defaultValues: { data: "" } });
+  const passwordForm = useForm<z.infer<typeof passwordChangeSchema>>({ resolver: zodResolver(passwordChangeSchema), defaultValues: { current_password: "", new_password: "" } });
 
   const handleBackup = async () => {
     setIsBackupLoading(true);
@@ -97,39 +96,23 @@ export function SettingsClient() {
         const response = await api.backupWallet();
         setWif(response.data.wif);
     } catch(error: any) {
-        toast({
-            variant: "destructive",
-            title: "Échec de la sauvegarde",
-            description: error.message,
-        });
+        toast({ variant: "destructive", title: "Échec de la sauvegarde", description: error.message });
         setIsBackupDialogOpen(false);
     } finally {
         setIsBackupLoading(false);
     }
   };
 
-  const closeBackupDialog = () => {
-    setIsBackupDialogOpen(false);
-    setWif(null);
-  }
+  const closeBackupDialog = () => { setIsBackupDialogOpen(false); setWif(null); }
 
   const handleRestoreSubmit = async (values: z.infer<typeof restoreFormSchema>) => {
     setIsRestoring(true);
     try {
       await api.restoreWallet(values.data);
-      toast({
-        title: "Restauration du portefeuille lancée",
-        description: "Votre portefeuille est en cours de restauration. L'application va se rafraîchir.",
-      });
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      toast({ title: "Restauration du portefeuille lancée", description: "Votre portefeuille est en cours de restauration. L'application va se rafraîchir." });
+      setTimeout(() => window.location.reload(), 2000);
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Échec de la restauration",
-        description: error.message,
-      });
+      toast({ variant: "destructive", title: "Échec de la restauration", description: error.message });
     } finally {
       setIsRestoring(false);
       setIsRestoreDialogOpen(false);
@@ -140,17 +123,10 @@ export function SettingsClient() {
     setIsChangingPassword(true);
     try {
       await api.changePassword(values);
-      toast({
-        title: "Mot de passe modifié",
-        description: "Votre mot de passe a été mis à jour avec succès.",
-      });
+      toast({ title: "Mot de passe modifié", description: "Votre mot de passe a été mis à jour avec succès." });
       passwordForm.reset();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Échec de la modification du mot de passe",
-        description: error.message,
-      });
+      toast({ variant: "destructive", title: "Échec de la modification du mot de passe", description: error.message });
     } finally {
       setIsChangingPassword(false);
     }
@@ -179,13 +155,11 @@ export function SettingsClient() {
                 <Sun className="mb-2 size-5" />
                 Clair
               </Label>
-
               <RadioGroupItem value="dark" id="dark" className="sr-only peer" />
               <Label htmlFor="dark" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
                 <Moon className="mb-2 size-5" />
                 Sombre
               </Label>
-              
               <RadioGroupItem value="system" id="system" className="sr-only peer" />
               <Label htmlFor="system" className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
                 <Laptop className="mb-2 size-5" />
@@ -353,6 +327,7 @@ export function SettingsClient() {
         </CardContent>
       </Card>
 
+      {/* Backup Dialog */}
       <AlertDialog open={isBackupDialogOpen} onOpenChange={setIsBackupDialogOpen}>
           <AlertDialogContent>
               <AlertDialogHeader>
@@ -370,24 +345,13 @@ export function SettingsClient() {
                         Ne partagez jamais cette clé avec qui que ce soit. Toute personne ayant cette clé peut voler vos fonds.
                     </AlertDescription>
                 </Alert>
-
                 <div className="rounded-lg border bg-secondary p-4 text-center font-code break-all">
-                    {isBackupLoading ? (
-                        <Skeleton className="h-5 w-4/5 mx-auto" />
-                    ) : (
-                        wif
-                    )}
+                    {isBackupLoading ? <Skeleton className="h-5 w-4/5 mx-auto" /> : wif}
                 </div>
               </div>
               <AlertDialogFooter className="pt-4 sm:gap-2 gap-4 flex-col sm:flex-row">
                   <Button variant="outline" onClick={closeBackupDialog} className="mt-0 w-full sm:w-auto">Fermer</Button>
-                  <CopyButton
-                    textToCopy={wif || ''}
-                    disabled={isBackupLoading || !wif}
-                    toastMessage="Clé privée copiée"
-                    onCopy={closeBackupDialog}
-                    className="w-full sm:w-auto"
-                   >
+                  <CopyButton textToCopy={wif || ''} disabled={isBackupLoading || !wif} toastMessage="Clé privée copiée" onCopy={closeBackupDialog} className="w-full sm:w-auto">
                     Copier la clé & Fermer
                    </CopyButton>
               </AlertDialogFooter>

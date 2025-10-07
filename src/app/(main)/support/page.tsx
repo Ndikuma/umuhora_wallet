@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -124,9 +124,9 @@ export default function SupportPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Contacter le Support</CardTitle>
+          <CardTitle>Contacter le Support (Ticket)</CardTitle>
           <CardDescription>
-            Vous ne trouvez pas de réponse ? Envoyez-nous un message.
+            Si vous ne trouvez pas de réponse, envoyez-nous un ticket.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -173,7 +173,7 @@ export default function SupportPage() {
                 ) : (
                   <Send className="mr-2 size-4" />
                 )}
-                {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
+                {isSubmitting ? "Envoi en cours..." : "Envoyer le ticket"}
               </Button>
             </form>
           </Form>

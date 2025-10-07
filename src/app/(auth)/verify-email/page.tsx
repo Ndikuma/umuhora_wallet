@@ -27,7 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BitcoinIcon } from "@/components/icons";
+import { UmuhoraIcon } from "@/components/icons";
 
 
 const formSchema = z.object({
@@ -42,16 +42,24 @@ export default function VerifyEmailPage() {
   const [isResending, setIsResending] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
+  const [nextPage, setNextPage] = useState<string | null>(null);
+  const [is2FALogin, setIs2FALogin] = useState(false);
 
   useEffect(() => {
     const emailParam = searchParams.get('email');
+    const nextParam = searchParams.get('next');
+    if (nextParam) {
+      setNextPage(nextParam);
+      setIs2FALogin(true);
+    }
+
     if (emailParam) {
       setEmail(emailParam);
     } else {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Adresse e-mail non trouvée. Veuillez vous inscrire à nouveau.",
+        description: "Adresse e-mail non trouvée.",
       });
       router.push("/register");
     }
@@ -76,19 +84,25 @@ export default function VerifyEmailPage() {
     setIsLoading(true);
     try {
       const response = await api.verifyEmail({ email, otp: values.otp });
-      const token = response.data.token;
+      const { token, wallet_created } = response.data;
 
       localStorage.setItem('authToken', token);
       document.cookie = `authToken=${token}; path=/; max-age=604800; samesite=lax`;
 
       toast({
         title: "Vérification réussie",
-        description: "Votre compte est maintenant actif.",
+        description: "Votre compte est maintenant actif et sécurisé.",
       });
-
-      // After verification, redirect to lightning page.
-      // User can create on-chain wallet later.
-      router.push("/lightning");
+      
+      if (is2FALogin) {
+        if (wallet_created) {
+          router.push("/dashboard");
+        } else {
+          router.push("/lightning");
+        }
+      } else {
+         router.push("/lightning");
+      }
       router.refresh();
 
     } catch (error: any) {
@@ -111,7 +125,7 @@ export default function VerifyEmailPage() {
             title: "Code renvoyé",
             description: "Un nouveau code de vérification a été envoyé à votre e-mail."
         });
-        setCountdown(5);
+        setCountdown(60); // Resend cooldown
     } catch (error: any) {
          toast({
             variant: "destructive",
@@ -134,8 +148,8 @@ export default function VerifyEmailPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <Link href="/" className="mb-8 flex items-center gap-2">
-        <BitcoinIcon className="size-8 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">Umuhora Tech Wallet</h1>
+        <UmuhoraIcon className="size-8 text-primary" />
+        <h1 className="text-2xl font-bold tracking-tight">Umuhora Wallet</h1>
       </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>
@@ -162,7 +176,7 @@ export default function VerifyEmailPage() {
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Vérifier & Activer le Compte
+                Vérifier & Continuer
               </Button>
             </form>
           </Form>

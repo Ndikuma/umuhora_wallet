@@ -13,7 +13,7 @@ import {
   Zap,
   LifeBuoy,
 } from "lucide-react";
-import { BitcoinIcon } from "@/components/icons";
+import { UmuhoraIcon } from "@/components/icons";
 import {
   SidebarHeader,
   SidebarContent,
@@ -53,9 +53,9 @@ export function MainNav() {
     <>
       <SidebarHeader className="p-4">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <BitcoinIcon className="size-7" />
+          <UmuhoraIcon className="size-7" />
           <h2 className="text-lg font-semibold tracking-tight text-foreground group-data-[collapsible=icon]:hidden">
-            Umuhora Tech Wallet
+            Umuhora Wallet
           </h2>
         </Link>
       </SidebarHeader>

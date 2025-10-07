@@ -47,23 +47,30 @@ export function LoginForm() {
     setNeedsVerification(null);
     try {
       const response = await api.login(values);
-      const token = response.data.token;
-
+      const { token, tfa_required, wallet_created, user } = response.data;
+      
       localStorage.setItem('authToken', token);
       document.cookie = `authToken=${token}; path=/; max-age=604800; samesite=lax`;
 
-      toast({
-        title: "Connexion réussie",
-        description: "Bienvenue !",
-      });
-
-      const { wallet_created } = response.data;
-      if (wallet_created) {
-        router.push("/dashboard");
+      if (tfa_required) {
+        toast({
+          title: "Vérification Requise",
+          description: "Un code a été envoyé à votre adresse e-mail. Veuillez le saisir pour continuer.",
+        });
+        router.push(`/verify-email?email=${encodeURIComponent(user.email)}&next=dashboard`);
       } else {
-        router.push("/lightning");
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue !",
+        });
+
+        if (wallet_created) {
+          router.push("/dashboard");
+        } else {
+          router.push("/lightning");
+        }
+        router.refresh();
       }
-      router.refresh(); 
 
     } catch (error: any) {
       if (error.message?.includes("Email not verified")) {
