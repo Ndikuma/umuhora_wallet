@@ -41,6 +41,7 @@ export default function VerifyEmailPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
     const emailParam = searchParams.get('email');
@@ -55,6 +56,14 @@ export default function VerifyEmailPage() {
       router.push("/register");
     }
   }, [searchParams, router, toast]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -94,7 +103,7 @@ export default function VerifyEmailPage() {
   }
 
   const handleResendOtp = async () => {
-    if (!email) return;
+    if (!email || isResending || countdown > 0) return;
     setIsResending(true);
     try {
         await api.resendOtp(email);
@@ -102,6 +111,7 @@ export default function VerifyEmailPage() {
             title: "Code renvoyé",
             description: "Un nouveau code de vérification a été envoyé à votre e-mail."
         });
+        setCountdown(5);
     } catch (error: any) {
          toast({
             variant: "destructive",
@@ -158,9 +168,9 @@ export default function VerifyEmailPage() {
           </Form>
            <div className="mt-4 text-center text-sm">
             Vous n'avez pas reçu de code ?{" "}
-            <Button variant="link" onClick={handleResendOtp} disabled={isResending} className="p-0 h-auto">
+            <Button variant="link" onClick={handleResendOtp} disabled={isResending || countdown > 0} className="p-0 h-auto">
               {isResending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Renvoyer le code
+              {countdown > 0 ? `Renvoyer dans ${countdown}s` : 'Renvoyer le code'}
             </Button>
           </div>
         </CardContent>
