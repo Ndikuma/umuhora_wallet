@@ -120,8 +120,8 @@ export function LoginForm() {
             <FormItem>
               <div className="flex justify-between items-center">
                 <FormLabel>Mot de passe</FormLabel>
-                 <Link href="/forgot-password" passHref legacyBehavior>
-                    <a className="text-sm font-medium text-primary hover:underline">Mot de passe oublié?</a>
+                 <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                    Mot de passe oublié?
                 </Link>
               </div>
               <div className="relative">
