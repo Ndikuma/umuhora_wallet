@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   Receipt,
   Zap,
+  LifeBuoy,
 } from "lucide-react";
 import { BitcoinIcon } from "@/components/icons";
 import {
@@ -35,6 +36,7 @@ const mainNavItems = [
 const footerNavItems = [
     { path: "/profile", icon: User, label: "Profil" },
     { path: "/settings", icon: Settings, label: "Paramètres" },
+    { path: "/support", icon: LifeBuoy, label: "Support" },
 ]
 
 export function MainNav() {

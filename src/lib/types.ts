@@ -296,3 +296,10 @@ export interface PasswordChangePayload {
     current_password:  string;
     new_password:  string;
 }
+
+export interface SupportRequestOutput {
+  ticketId: string;
+  category: string;
+  summary: string;
+  status: string;
+}

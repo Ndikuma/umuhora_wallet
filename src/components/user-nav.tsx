@@ -6,7 +6,8 @@ import {
   LogOut,
   Settings,
   User as UserIcon,
-  ChevronDown
+  ChevronDown,
+  LifeBuoy
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -106,6 +107,12 @@ export function UserNav() {
              <Link href="/settings">
                 <Settings />
                 <span>Paramètres</span>
+              </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+             <Link href="/support">
+                <LifeBuoy />
+                <span>Support</span>
               </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

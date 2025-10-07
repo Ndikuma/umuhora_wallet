@@ -1,5 +1,6 @@
 
-import type { ApiResponse, AuthResponse, PaginatedResponse, Transaction, User, Wallet, Balance, FeeEstimation, BuyProvider, BuyFeeCalculation, Order, SellProvider, BuyOrderPayload, SellOrderPayload, OrderUpdatePayload, LightningBalance, CreateInvoicePayload, LightningInvoice, PayLightningRequestPayload, LightningPayment, LightningTransaction, DecodeLightningRequestPayload, DecodedLightningRequest, LightningPaymentResponse, PasswordChangePayload } from '@/lib/types';
+import type { ApiResponse, AuthResponse, PaginatedResponse, Transaction, User, Wallet, Balance, FeeEstimation, BuyProvider, BuyFeeCalculation, Order, SellProvider, BuyOrderPayload, SellOrderPayload, OrderUpdatePayload, LightningBalance, CreateInvoicePayload, LightningInvoice, PayLightningRequestPayload, LightningPayment, LightningTransaction, DecodeLightningRequestPayload, DecodedLightningRequest, LightningPaymentResponse, PasswordChangePayload, SupportRequestOutput } from '@/lib/types';
+import { sendSupportRequest } from '@/ai/flows/support-flow';
 import axios, { type AxiosError, type AxiosResponse, type AxiosInstance } from 'axios';
 
 const BACKEND_URL = 'https://mph-illinois-surveys-threaded.trycloudflare.com/';
@@ -160,6 +161,16 @@ const payLightningInvoice = (payload: PayLightningRequestPayload): Promise<Axios
 const getLightningInvoice = (invoiceId: string): Promise<AxiosResponse<LightningInvoice>> => axiosInstance.get(`lightning/invoices/${invoiceId}/`);
 const decodeLightningRequest = (payload: DecodeLightningRequestPayload): Promise<AxiosResponse<DecodedLightningRequest>> => axiosInstance.post('lightning/decode/', payload);
 
+// --- Support ---
+const sendSupportRequestApi = async (subject: string, message: string): Promise<SupportRequestOutput> => {
+    try {
+        const response = await sendSupportRequest({ subject, message });
+        return response;
+    } catch (error) {
+        console.error("Error in sendSupportRequest flow:", error);
+        throw new Error("Failed to process support request via AI flow.");
+    }
+};
 
 
 const api = {
@@ -203,6 +214,8 @@ const api = {
     payLightningInvoice,
     getLightningInvoice,
     decodeLightningRequest,
+    // Support
+    sendSupportRequest: sendSupportRequestApi,
 };
 
 export default api;
