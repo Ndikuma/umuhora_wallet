@@ -179,7 +179,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
       
-      {wallet && (
+      {user.wallet_created && wallet && (
         <>
           <div className="space-y-2 pt-4">
             <h2 className="text-xl font-bold tracking-tight md:text-2xl">Statistiques du Portefeuille On-Chain</h2>
